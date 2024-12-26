@@ -18,7 +18,7 @@ class UNetBrevitas(nn.Module):
       - Applies a quantized Conv2d to reduce channel depth.
     """
 
-    def __init__(self, in_channels=3, out_channels=1):
+    def __init__(self, in_channels=1, out_channels=1):
         super(UNetBrevitas, self).__init__()
 
         #######################################################################
@@ -216,10 +216,10 @@ class UNetBrevitas(nn.Module):
 # Quick test if running standalone
 ###############################################################################
 if __name__ == "__main__":
-    # Example input: (batch_size=1, 3 channels, 128x128)
-    test_input = torch.randn(1, 3, 128, 128)
+    # Example input: (batch_size=1, 1 channels, 128x128)
+    test_input = torch.randn(1, 1, 128, 128)
 
-    model = UNetBrevitas(in_channels=3, out_channels=1)
+    model = UNetBrevitas(in_channels=1, out_channels=1)
     model.eval()
 
     with torch.no_grad():

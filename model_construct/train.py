@@ -1,36 +1,20 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
+from brevitas.export import export_qonnx
+from qonnx.util.cleanup import cleanup as qonnx_cleanup
+from qonnx.core.modelwrapper import ModelWrapper
+from qonnx.core.datatype import DataType
+from finn.transformation.qonnx.convert_qonnx_to_finn import ConvertQONNXtoFINN
 
 from model import UNetBrevitas
+from dataset import MyDataset  # the custom dataset defined above
 
-###############################################################################
-# Global shape parameters for training & exporting
-###############################################################################
+# Desired training image size
 HEIGHT = 128
 WIDTH = 128
 
-###############################################################################
-# Synthetic Dataset (random data)
-###############################################################################
-class SyntheticDataset(Dataset):
-    def __init__(self, num_samples=100):
-        self.num_samples = num_samples
-
-    def __len__(self):
-        return self.num_samples
-
-    def __getitem__(self, idx):
-        # Random image: [3, HEIGHT, WIDTH]
-        image = torch.randn(3, HEIGHT, WIDTH)
-        # Random mask: [1, HEIGHT, WIDTH]
-        mask = (torch.randn(1, HEIGHT, WIDTH) > 0).float()
-        return image, mask
-
-###############################################################################
-# Training function
-###############################################################################
 def train_unet_brevitas(
     model,
     data_loader,
@@ -47,7 +31,7 @@ def train_unet_brevitas(
             masks = masks.to(device)
 
             optimizer.zero_grad()
-            outputs = model(images)
+            outputs = model(images)  # [N, 1, 128, 128]
             loss = loss_fn(outputs, masks)
             loss.backward()
             optimizer.step()
@@ -57,19 +41,23 @@ def train_unet_brevitas(
                       f"Batch [{batch_idx+1}/{len(data_loader)}], "
                       f"Loss: {loss.item():.4f}")
 
-###############################################################################
-# Main script
-###############################################################################
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("Using device:", device)
 
-    # Create random dataset
-    train_dataset = SyntheticDataset(num_samples=200)
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
+    # Create real dataset
+    root_dir = "./data"  # adjust if needed
+    dataset = MyDataset(root_dir, height=HEIGHT, width=WIDTH)
+    # If you want a train/val split, you'd do it here
+    # e.g. train_size = int(0.8 * len(dataset)), val_size = len(dataset) - train_size
+    # train_ds, val_ds = torch.utils.data.random_split(dataset, [train_size, val_size])
+    # train_loader = DataLoader(train_ds, batch_size=8, shuffle=True)
+    # val_loader = DataLoader(val_ds, batch_size=8, shuffle=False)
+    # For simplicity, we'll just create one loader for all data
+    train_loader = DataLoader(dataset, batch_size=8, shuffle=True)
 
     # Create model
-    model = UNetBrevitas(in_channels=3, out_channels=1).to(device)
+    model = UNetBrevitas(in_channels=1, out_channels=1).to(device)
 
     # Loss & optimizer
     criterion = nn.BCEWithLogitsLoss()
@@ -82,39 +70,34 @@ if __name__ == "__main__":
         optimizer=optimizer,
         loss_fn=criterion,
         device=device,
-        num_epochs=1,
+        num_epochs=5,
         log_interval=10
     )
 
     print("Training complete!")
 
     # ------------------------------------------------------------------------
-    # 1) Save the model weights (PyTorch format)
-    # ------------------------------------------------------------------------
-    model_save_path = "unet_brevitas.pth"
-    torch.save(model.state_dict(), model_save_path)
-    print(f"Model weights saved to {model_save_path}")
-
-    # ------------------------------------------------------------------------
-    # 2) Export to ONNX
-    #    We use the same (HEIGHT, WIDTH) for the input shape.
+    # Export to QONNX
     # ------------------------------------------------------------------------
     onnx_export_path = "unet_brevitas.onnx"
-
-    # We need a dummy input of the correct shape
-    dummy_input = torch.randn(1, 3, HEIGHT, WIDTH).to(device)
-
-    # Switch model to eval mode
     model.eval()
 
-    # Export
-    torch.onnx.export(
-        model, 
-        dummy_input, 
-        onnx_export_path,
-        opset_version=11,      # FINN typically expects opset 11 or newer
-        input_names=["input"],
-        output_names=["output"],
-        do_constant_folding=True
+    # We need a dummy input for correct shape
+    dummy_input = torch.randn(1, 1, HEIGHT, WIDTH).to(device)
+
+    # Export to QONNX
+    export_qonnx(
+        model, export_path=onnx_export_path, input_t=dummy_input
     )
-    print(f"ONNX model saved to {onnx_export_path}")
+    # Clean up QONNX
+    qonnx_cleanup(onnx_export_path, out_file=onnx_export_path)
+
+    # Convert QONNX to FINN
+    finn_model = ModelWrapper(onnx_export_path)
+    # If you truly want 'BIPOLAR' input, you can do that here, 
+    # or consider e.g. DataType.INT8, etc. (depends on your design)
+    finn_model.set_tensor_datatype(finn_model.graph.input[0].name, DataType["BIPOLAR"])
+    finn_model = finn_model.transform(ConvertQONNXtoFINN())
+    finn_model.save(onnx_export_path)
+
+    print(f"Model saved to {onnx_export_path}")
