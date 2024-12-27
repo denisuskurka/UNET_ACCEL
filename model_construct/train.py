@@ -8,17 +8,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from dataset import RealSegDataset  # your custom dataset that loads images/masks
-from model import UNetBrevitas       # your quantized U-Net definition
+from model import UNetBrevitasFINN       # your quantized U-Net definition
 
 ###############################################################################
 # 1) Hyperparameters & Settings
 ###############################################################################
 HEIGHT, WIDTH = 160, 160   # image & mask size
-BATCH_SIZE = 8
-NUM_EPOCHS = 200
+BATCH_SIZE = 10
+NUM_EPOCHS = 30
 LEARNING_RATE = 0.0005
 VAL_SPLIT = 0.2
-EARLY_STOP_PATIENCE = 8
+EARLY_STOP_PATIENCE = 10
 SAVE_BEST_MODEL_PATH = "best_unet_brevitas_weights.pth"
 
 # Paths to your data
@@ -190,9 +190,18 @@ def main():
     val_loader   = DataLoader(val_subset,   batch_size=BATCH_SIZE, shuffle=False)
 
     # Create model, loss, optimizer
-    model = UNetBrevitas(in_channels=1, out_channels=1).to(DEVICE)
-    loss_fn = BCEDiceLoss(bce_weight=0.5)
+    model = UNetBrevitasFINN(in_channels=1, out_channels=1).to(DEVICE)
+    loss_fn = BCEDiceLoss(bce_weight=0.3)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+    # Implement Learning Rate Scheduler
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, 
+        mode='min', 
+        factor=0.5, 
+        patience=5, 
+        verbose=True
+    )
 
     # Lists to store losses for plotting
     train_losses = []
@@ -232,6 +241,9 @@ def main():
             sample_idx=0,
             out_file="visual.png"
         )
+
+        # Step scheduler
+        scheduler.step(val_loss)
 
         # Check improvement
         if val_loss < best_val_loss:
