@@ -1,6 +1,7 @@
 # Exclude data for NN
 model_construct/SN
 model_construct/data
+model_construct/progress
 
 # Models
 *.onnx

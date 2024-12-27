@@ -1,77 +1,119 @@
 import os
-import glob
+import random
 from PIL import Image
 import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as T
+import torchvision.transforms.functional as TF
 
-class MyDataset(Dataset):
-    def __init__(self, root_dir, height=128, width=128):
-        """
-        root_dir: path to the data folder, which contains:
-            - images/ (e.g. 01.png, 02.png, ...)
-            - masks/  (e.g. 01_blue.png, 01_green.png, 01_red.png, ...)
-        height, width: desired image/mask size
-        """
-        self.root_dir = root_dir
-        self.image_dir = os.path.join(root_dir, "images")
-        self.mask_dir = os.path.join(root_dir, "masks")
+class RealSegDataset(Dataset):
+    """
+    A dataset that:
+      - Scans `images_dir` and `masks_dir` for matching filenames.
+      - Loads image & mask as grayscale [1, H, W].
+      - Resizes to (height, width).
+      - Optionally applies data augmentation (random flips, rotation, brightness changes).
+        * Horizontal flip / vertical flip for both image & mask.
+        * Random rotation for both image & mask.
+        * Random brightness ONLY for the image.
+    """
+
+    def __init__(
+        self,
+        images_dir,
+        masks_dir,
+        height=128,
+        width=128,
+        augment=False,        # enable/disable all augmentation
+        flip_prob=0.5,        # probability of flips (horizontal/vertical)
+        rotate_prob=0,      # probability of random rotation
+        max_rotate_deg=5,    # +/- max degrees for rotation
+        brightness_prob=0.5,  # probability of random brightness change
+        brightness_range=(0.7, 1.3)  # min/max for brightness factor
+    ):
+        super().__init__()
+        self.images_dir = images_dir
+        self.masks_dir = masks_dir
         self.height = height
         self.width = width
+        self.augment = augment
 
-        # List all .png in image_dir
-        self.image_paths = sorted(glob.glob(os.path.join(self.image_dir, "*.png")))
+        self.flip_prob = flip_prob
+        self.rotate_prob = rotate_prob
+        self.max_rotate_deg = max_rotate_deg
+        self.brightness_prob = brightness_prob
+        self.brightness_range = brightness_range
 
-        # Define transforms (example)
-        self.img_transform = T.Compose([
-            T.Grayscale(num_output_channels=1),  # ensure single channel
+        # Gather all possible mask filenames
+        all_mask_files = sorted(os.listdir(self.masks_dir))
+
+        # Build a list of (image_path, mask_path) pairs
+        self.data_pairs = []
+        for mask_name in all_mask_files:
+            mask_path = os.path.join(self.masks_dir, mask_name)
+            image_path = os.path.join(self.images_dir, mask_name)
+            if os.path.isfile(image_path):
+                self.data_pairs.append((image_path, mask_path))
+
+        # Base transforms (grayscale -> resize)
+        # We'll convert to tensor manually in __getitem__ after augmentation
+        self.image_transform = T.Compose([
+            T.Grayscale(num_output_channels=1),
             T.Resize((self.height, self.width)),
-            T.ToTensor(),  # => [C, H, W], range [0,1]
         ])
         self.mask_transform = T.Compose([
-            T.Grayscale(num_output_channels=1),  # ensure single channel
+            T.Grayscale(num_output_channels=1),
             T.Resize((self.height, self.width)),
-            T.ToTensor(),  # => [1, H, W], range [0,1]
         ])
 
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.data_pairs)
 
     def __getitem__(self, idx):
-        # 1) Load the image
-        img_path = self.image_paths[idx]
-        img_id = os.path.splitext(os.path.basename(img_path))[0]  # e.g. "01" from "01.png"
-        image = Image.open(img_path)
-        image = self.img_transform(image)
+        image_path, mask_path = self.data_pairs[idx]
+        
+        # Load PIL images
+        image_pil = Image.open(image_path)
+        mask_pil = Image.open(mask_path)
 
-        # 2) Find all masks with the same ID (e.g. 01_blue.png, 01_green.png, etc.)
-        mask_pattern = os.path.join(self.mask_dir, f"{img_id}_*.png")
-        mask_files = sorted(glob.glob(mask_pattern))
+        # Apply the base transforms (grayscale + resize)
+        image = self.image_transform(image_pil)  # still PIL after transform
+        mask = self.mask_transform(mask_pil)     # still PIL
 
-        # 3) If no mask found, optionally skip or create an empty mask
-        if len(mask_files) == 0:
-            # Example: create an all-zero mask
-            mask = torch.zeros((1, self.height, self.width), dtype=torch.float32)
-        else:
-            # Combine all found masks into one
-            combined_mask = None
-            for mpath in mask_files:
-                mimg = Image.open(mpath)
-                mimg = self.mask_transform(mimg)
-                # Convert to binary (threshold), since mask might have grayscale values
-                # e.g. threshold at 0.5
-                mimg_bin = (mimg > 0.5).float()
+        # Convert to PIL to keep them consistent for transforms.functional
+        # (Note: T.Resize returns a PIL Image if input is PIL, so we're good.)
 
-                if combined_mask is None:
-                    combined_mask = mimg_bin
-                else:
-                    # union / logical OR => whichever pixel is 1 in any mask
-                    combined_mask = torch.maximum(combined_mask, mimg_bin)
+        # -----------
+        # Data Augmentation
+        # -----------
+        if self.augment:
+            # 1) Horizontal flip
+            if random.random() < self.flip_prob:
+                image = TF.hflip(image)
+                mask = TF.hflip(mask)
 
-            # If for some reason we never set combined_mask, fallback
-            if combined_mask is None:
-                combined_mask = torch.zeros((1, self.height, self.width), dtype=torch.float32)
-            mask = combined_mask
+            ## 2) Vertical flip
+            #if random.random() < self.flip_prob:
+            #    image = TF.vflip(image)
+            #    mask = TF.vflip(mask)
 
-        # Return image [1,H,W], mask [1,H,W]
-        return image, mask
+            # 3) Random rotation
+            if random.random() < self.rotate_prob:
+                angle = random.uniform(-self.max_rotate_deg, self.max_rotate_deg)
+                image = TF.rotate(image, angle)
+                mask = TF.rotate(mask, angle)
+
+            # 4) Random brightness (only on image)
+            if random.random() < self.brightness_prob:
+                brightness_factor = random.uniform(*self.brightness_range)
+                image = TF.adjust_brightness(image, brightness_factor)
+                # Do not apply brightness to the mask
+
+        # Convert final PIL images to torch.Tensor
+        image_tensor = T.ToTensor()(image)  # shape [1, H, W], float in [0,1]
+        mask_tensor = T.ToTensor()(mask)    # shape [1, H, W], float in [0,1]
+
+        # Optionally binarize the mask if needed:
+        # mask_tensor = (mask_tensor > 0.5).float()
+
+        return image_tensor, mask_tensor
