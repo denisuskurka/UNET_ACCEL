@@ -1,206 +1,261 @@
 import torch
-import torch.nn as nn
-import brevitas.nn as qnn
-from brevitas.quant import Int8WeightPerTensorFixedPoint as WeightQuant
-from brevitas.quant import Int8ActPerTensorFloatBatchQuant2d as ActQuantIdentity  # Signed
-from brevitas.quant import Uint8ActPerTensorFloatBatchQuant2d as ActQuantReLU      # Unsigned
+from torch.nn import BatchNorm2d, MaxPool2d, Module, ModuleList, ConvTranspose2d
+from torch.nn import functional as F
 
-PRINT_PASS=True  # Set to True to enable print statements
+from brevitas.nn import QuantConv2d, QuantConvTranspose2d, QuantIdentity
 
-class UNetBrevitasFINN(nn.Module):
-    """
-    A U-Net compatible with FINN using separate quantizers for ReLU and QuantIdentity layers.
-    Skip connections are implemented via element-wise addition.
-    """
+from common import CommonActQuant, CommonWeightQuant  # Importing from common.py
+from brevitas.core.restrict_val import RestrictValueType
 
-    def __init__(self, in_channels=1, out_channels=1):
-        super(UNetBrevitasFINN, self).__init__()
+DEBUG = False
 
-        def conv_block(in_ch, out_ch):
-            return nn.Sequential(
-                qnn.QuantConv2d(
-                    in_channels=in_ch,
+# U-Net Configuration Constants
+ENCODER_CHANNELS = [64, 128, 256, 512]
+DECODER_CHANNELS = [512, 256, 128, 64]
+BOTTLE_NECK_CHANNELS = 1024
+KERNEL_SIZE = 3
+POOL_SIZE = 2
+
+class UNet(Module):
+    def __init__(self, in_channels, out_channels, weight_bit_width=8, act_bit_width=8, in_bit_width=8):
+        super(UNet, self).__init__()
+
+        # Encoder Path
+        self.encoder = ModuleList()
+        prev_channels = in_channels
+        for out_ch in ENCODER_CHANNELS:
+            self.encoder.append(
+                QuantConv2d(
+                    in_channels=prev_channels,
                     out_channels=out_ch,
-                    kernel_size=3,
+                    kernel_size=KERNEL_SIZE,
                     stride=1,
                     padding=1,
                     bias=False,
-                    weight_quant=WeightQuant,
-                    weight_bit_width=8,
-                    return_quant_tensor=True
-                ),
-                qnn.QuantReLU(
-                    act_quant=ActQuantReLU,  # Unsigned
-                    bit_width=8,
-                    return_quant_tensor=True
-                ),
-                qnn.QuantConv2d(
-                    in_channels=out_ch,
-                    out_channels=out_ch,
-                    kernel_size=3,
-                    stride=1,
-                    padding=1,
-                    bias=False,
-                    weight_quant=WeightQuant,
-                    weight_bit_width=8,
-                    return_quant_tensor=True
-                ),
-                qnn.QuantReLU(
-                    act_quant=ActQuantReLU,  # Unsigned
-                    bit_width=8,
-                    return_quant_tensor=True
+                    weight_quant=CommonWeightQuant,
+                    weight_bit_width=weight_bit_width
                 )
             )
+            self.encoder.append(BatchNorm2d(out_ch, eps=1e-4))
+            self.encoder.append(
+                QuantIdentity(
+                    act_quant=CommonActQuant,
+                    bit_width=act_bit_width,
+                    min_val=0.0,  # Assuming ReLU-like activation
+                    max_val=1.0 - 2.0 ** (-act_bit_width),
+                    restrict_scaling_type=RestrictValueType.POWER_OF_TWO
+                )
+            )
+            self.encoder.append(MaxPool2d(kernel_size=POOL_SIZE))
+            prev_channels = out_ch
 
-        def upsample_block(in_ch, out_ch):
-            return nn.Sequential(
-                qnn.QuantConvTranspose2d(
-                    in_channels=in_ch,
+        # Bottleneck
+        self.bottleneck = ModuleList()
+        self.bottleneck.append(
+            QuantConv2d(
+                in_channels=prev_channels,
+                out_channels=BOTTLE_NECK_CHANNELS,
+                kernel_size=KERNEL_SIZE,
+                stride=1,
+                padding=1,
+                bias=False,
+                weight_quant=CommonWeightQuant,
+                weight_bit_width=weight_bit_width
+            )
+        )
+        self.bottleneck.append(BatchNorm2d(BOTTLE_NECK_CHANNELS, eps=1e-4))
+        self.bottleneck.append(
+            QuantIdentity(
+                act_quant=CommonActQuant,
+                bit_width=act_bit_width,
+                min_val=0.0,
+                max_val=1.0 - 2.0 ** (-act_bit_width),
+                restrict_scaling_type=RestrictValueType.POWER_OF_TWO
+            )
+        )
+
+        # Decoder Path
+        self.decoder = ModuleList()
+        current_channels = BOTTLE_NECK_CHANNELS
+        for out_ch in DECODER_CHANNELS:
+            # Upsample
+            self.decoder.append(
+                QuantConvTranspose2d(
+                    in_channels=current_channels,
                     out_channels=out_ch,
                     kernel_size=2,
                     stride=2,
                     padding=0,
                     bias=False,
-                    weight_quant=WeightQuant,
-                    weight_bit_width=8,
-                    return_quant_tensor=True
-                ),
-                qnn.QuantReLU(
-                    act_quant=ActQuantReLU,  # Unsigned
-                    bit_width=8,
-                    return_quant_tensor=True
+                    weight_quant=CommonWeightQuant,
+                    weight_bit_width=weight_bit_width
                 )
             )
-
-        def downsample_block(in_ch, out_ch):
-            return qnn.QuantConv2d(
-                in_channels=in_ch,
-                out_channels=out_ch,
-                kernel_size=3,
-                stride=2,
-                padding=1,
-                bias=False,
-                weight_quant=WeightQuant,
-                weight_bit_width=8,
-                return_quant_tensor=True
+            self.decoder.append(BatchNorm2d(out_ch, eps=1e-4))
+            self.decoder.append(
+                QuantIdentity(
+                    act_quant=CommonActQuant,
+                    bit_width=act_bit_width,
+                    min_val=0.0,
+                    max_val=1.0 - 2.0 ** (-act_bit_width),
+                    restrict_scaling_type=RestrictValueType.POWER_OF_TWO
+                )
             )
+            # Convolution after concatenation
+            concatenated_channels = out_ch + (current_channels // 2)  # Concatenated channels
+            self.decoder.append(
+                QuantConv2d(
+                    in_channels=concatenated_channels,
+                    out_channels=out_ch,
+                    kernel_size=KERNEL_SIZE,
+                    stride=1,
+                    padding=1,
+                    bias=False,
+                    weight_quant=CommonWeightQuant,
+                    weight_bit_width=weight_bit_width
+                )
+            )
+            # Adjust BatchNorm2d to match concatenated channels
+            self.decoder.append(BatchNorm2d(out_ch, eps=1e-4))
+            self.decoder.append(
+                QuantIdentity(
+                    act_quant=CommonActQuant,
+                    bit_width=act_bit_width,
+                    min_val=0.0,
+                    max_val=1.0 - 2.0 ** (-act_bit_width),
+                    restrict_scaling_type=RestrictValueType.POWER_OF_TWO
+                )
+            )
+            current_channels = out_ch  # Update for the next iteration
 
-        # QuantIdentity with signed quantizer
-        self.fix_scale = qnn.QuantIdentity(
-            act_quant=ActQuantIdentity,  # Signed
-            bit_width=8,
-            return_quant_tensor=True
-        )
-
-        # Encoder
-        self.enc1 = conv_block(in_channels, 64)
-        self.down1 = downsample_block(64, 128)
-        self.enc2 = conv_block(128, 128)
-        self.down2 = downsample_block(128, 256)
-        self.enc3 = conv_block(256, 256)
-        self.down3 = downsample_block(256, 512)
-        self.enc4 = conv_block(512, 512)
-
-        # Bottleneck
-        self.down4 = downsample_block(512, 1024)
-        self.bottleneck = conv_block(1024, 1024)
-
-        # Decoder
-        self.up4 = upsample_block(1024, 512)
-        self.dec4 = conv_block(512, 512)  # Adjusted to accept 512 channels
-
-        self.up3 = upsample_block(512, 256)
-        self.dec3 = conv_block(256, 256)  # Adjusted to accept 256 channels
-
-        self.up2 = upsample_block(256, 128)
-        self.dec2 = conv_block(128, 128)  # Adjusted to accept 128 channels
-
-        self.up1 = upsample_block(128, 64)
-        self.dec1 = conv_block(64, 64)     # Adjusted to accept 64 channels
-
-        # Final output layer
-        self.out_conv = qnn.QuantConv2d(
-            in_channels=64,
+        # Final Output Layer
+        self.out_conv = QuantConv2d(
+            in_channels=DECODER_CHANNELS[-1],
             out_channels=out_channels,
             kernel_size=1,
+            stride=1,
+            padding=0,
             bias=False,
-            weight_quant=WeightQuant,
-            weight_bit_width=8,
-            return_quant_tensor=False  # Final layer does not need quantization
+            weight_quant=CommonWeightQuant,
+            weight_bit_width=weight_bit_width
         )
 
+        # Initialize weights
+        self.initialize_weights()
+
+    def initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, QuantConv2d) or isinstance(m, QuantConvTranspose2d):
+                torch.nn.init.uniform_(m.weight.data, -1, 1)
+
     def forward(self, x):
-        # Encoder
-        enc1_out = self.enc1(x)
-        if PRINT_PASS: print(f"enc1_out shape: {enc1_out.shape}")  # Should be [1, 64, 128, 128]
-        enc2_in = self.fix_scale(self.down1(enc1_out))
-        enc2_out = self.enc2(enc2_in)
-        if PRINT_PASS: print(f"enc2_out shape: {enc2_out.shape}")  # Should be [1, 128, 64, 64]
+        encoder_outputs = []
 
-        enc3_in = self.fix_scale(self.down2(enc2_out))
-        enc3_out = self.enc3(enc3_in)
-        if PRINT_PASS: print(f"enc3_out shape: {enc3_out.shape}")  # Should be [1, 256, 32, 32]
+        # Save the original input dimensions
+        original_size = x.size()[2:]
 
-        enc4_in = self.fix_scale(self.down3(enc3_out))
-        enc4_out = self.enc4(enc4_in)
-        if PRINT_PASS: print(f"enc4_out shape: {enc4_out.shape}")  # Should be [1, 512, 16, 16]
+        # Encoder Path
+        for layer in self.encoder:
+            x = layer(x)
+            if isinstance(layer, MaxPool2d):
+                encoder_outputs.append(x)
+                if DEBUG:
+                    print(f"Encoder output at layer: {x.shape}")
 
-        bottleneck_in = self.fix_scale(self.down4(enc4_out))
-        bottleneck_out = self.bottleneck(bottleneck_in)
-        if PRINT_PASS: print(f"bottleneck_out shape: {bottleneck_out.shape}")  # Should be [1, 1024, 8, 8]
+        # Bottleneck
+        for layer in self.bottleneck:
+            x = layer(x)
+        if DEBUG:
+            print(f"Bottleneck output: {x.shape}")
 
-        # Decoder
-        up4_out = self.up4(bottleneck_out)
-        if PRINT_PASS: print(f"up4_out shape: {up4_out.shape}")  # Should be [1, 512, 16, 16]
-        up4_out = self.fix_scale(up4_out)          # Align scale (signed)
-        enc4_out = self.fix_scale(enc4_out)        # Align scale (signed)
-        dec4_in = up4_out + enc4_out               # Skip Connection via Addition
-        if PRINT_PASS: print(f"dec4_in shape: {dec4_in.shape}")    # Should be [1, 512, 16, 16]
-        dec4_out = self.dec4(dec4_in)
-        if PRINT_PASS: print(f"dec4_out shape: {dec4_out.shape}")  # Should be [1, 512, 16, 16]
+        # Decoder Path
+        for i in range(0, len(self.decoder), 6):
+            # Upsample
+            up_conv = self.decoder[i]
+            up_bn = self.decoder[i+1]
+            up_act = self.decoder[i+2]
+            x = up_conv(x)
+            x = up_bn(x)
+            x = up_act(x)
+            if DEBUG:
+                print(f"After upsample: {x.shape}")
 
-        up3_out = self.up3(dec4_out)
-        if PRINT_PASS: print(f"up3_out shape: {up3_out.shape}")    # Should be [1, 256, 32, 32]
-        up3_out = self.fix_scale(up3_out)          # Align scale (signed)
-        enc3_out = self.fix_scale(enc3_out)        # Align scale (signed)
-        dec3_in = up3_out + enc3_out               # Skip Connection via Addition
-        if PRINT_PASS: print(f"dec3_in shape: {dec3_in.shape}")    # Should be [1, 256, 32, 32]
-        dec3_out = self.dec3(dec3_in)
-        if PRINT_PASS: print(f"dec3_out shape: {dec3_out.shape}")  # Should be [1, 256, 32, 32]
+            # Retrieve corresponding encoder output for skip connection
+            enc_output = encoder_outputs[-(i // 6 + 1)]
+            if DEBUG:
+                print(f"Skip connection: {enc_output.shape}")
 
-        up2_out = self.up2(dec3_out)
-        if PRINT_PASS: print(f"up2_out shape: {up2_out.shape}")    # Should be [1, 128, 64, 64]
-        up2_out = self.fix_scale(up2_out)          # Align scale (signed)
-        enc2_out = self.fix_scale(enc2_out)        # Align scale (signed)
-        dec2_in = up2_out + enc2_out               # Skip Connection via Addition
-        if PRINT_PASS: print(f"dec2_in shape: {dec2_in.shape}")    # Should be [1, 128, 64, 64]
-        dec2_out = self.dec2(dec2_in)
-        if PRINT_PASS: print(f"dec2_out shape: {dec2_out.shape}")  # Should be [1, 128, 64, 64]
+            # Ensure matching spatial dimensions
+            if x.size() != enc_output.size():
+                x = F.interpolate(x, size=enc_output.shape[2:], mode='nearest')
 
-        up1_out = self.up1(dec2_out)
-        if PRINT_PASS: print(f"up1_out shape: {up1_out.shape}")    # Should be [1, 64, 128, 128]
-        up1_out = self.fix_scale(up1_out)          # Align scale (signed)
-        enc1_out = self.fix_scale(enc1_out)        # Align scale (signed)
-        dec1_in = up1_out + enc1_out               # Skip Connection via Addition
-        if PRINT_PASS: print(f"dec1_in shape: {dec1_in.shape}")    # Should be [1, 64, 128, 128]
-        dec1_out = self.dec1(dec1_in)
-        if PRINT_PASS: print(f"dec1_out shape: {dec1_out.shape}")  # Should be [1, 64, 128, 128]
+            # Concatenate along channel dimension
+            x = torch.cat([x, enc_output], dim=1)
+            if DEBUG:
+                print(f"After concatenation: {x.shape}")
 
-        return self.out_conv(dec1_out)
+            # Convolutional Block
+            conv = self.decoder[i+3]
+            bn = self.decoder[i+4]
+            act = self.decoder[i+5]
+            x = conv(x)
+            x = bn(x)
+            x = act(x)
+            if DEBUG:
+                print(f"After convolution block: {x.shape}")
 
-###############################################################################
-# Quick test if running standalone
-###############################################################################
+        # Final Output
+        x = self.out_conv(x)
+
+        # Resize to match the original input dimensions
+        if x.size()[2:] != original_size:
+            x = F.interpolate(x, size=original_size, mode='bilinear', align_corners=False)
+
+        return x
+
+
 if __name__ == "__main__":
-    # Example input: (batch_size=1, 1 channel, 128x128)
-    test_input = torch.randn(1, 1, 128, 128)
+    # Example configuration using a simple dictionary-like class
+    class Config:
+        def getint(self, section, option, fallback=None):
+            config = {
+                'QUANT': {
+                    'WEIGHT_BIT_WIDTH': 8,
+                    'ACT_BIT_WIDTH': 8,
+                    'IN_BIT_WIDTH': 8
+                },
+                'MODEL': {
+                    'NUM_CLASSES': 1,
+                    'IN_CHANNELS': 1,
+                    'OUT_CHANNELS': 1
+                }
+            }
+            return config.get(section, {}).get(option, fallback)
 
-    model = UNetBrevitasFINN(in_channels=1, out_channels=1)
+    cfg = Config()
+    
+    # Extract configuration values for in_channels and out_channels
+    in_channels = cfg.getint('MODEL', 'IN_CHANNELS', fallback=1)
+    out_channels = cfg.getint('MODEL', 'OUT_CHANNELS', fallback=1)
+    weight_bit_width = cfg.getint('QUANT', 'WEIGHT_BIT_WIDTH', fallback=8)
+    act_bit_width = cfg.getint('QUANT', 'ACT_BIT_WIDTH', fallback=8)
+    in_bit_width = cfg.getint('QUANT', 'IN_BIT_WIDTH', fallback=8)
+    
+    # Instantiate the UNet model with the correct arguments
+    model = UNet(
+        in_channels=in_channels, 
+        out_channels=out_channels,
+        weight_bit_width=weight_bit_width,
+        act_bit_width=act_bit_width,
+        in_bit_width=in_bit_width
+    )
     model.eval()
 
+    # Example input: (batch_size=1, in_channels=1, height=128, width=128)
+    test_input = torch.randn(1, in_channels, 160, 160)
     with torch.no_grad():
         output = model(test_input)
 
     print("Input shape :", test_input.shape)
     print("Output shape:", output.shape)
-    # Expect shape (1, 1, 128, 128)
+    # Expected output shape: (1, out_channels, 128, 128)

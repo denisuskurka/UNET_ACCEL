@@ -8,22 +8,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from dataset import RealSegDataset  # your custom dataset that loads images/masks
-from model import UNetBrevitasFINN       # your quantized U-Net definition
+from model import UNet  # Updated import for the new UNet model
 
 ###############################################################################
 # 1) Hyperparameters & Settings
 ###############################################################################
-HEIGHT, WIDTH = 160, 160   # image & mask size
+HEIGHT, WIDTH = 128, 128  # image & mask size (should match model input size)
 BATCH_SIZE = 10
-NUM_EPOCHS = 30
-LEARNING_RATE = 0.0005
+NUM_EPOCHS = 100
+LEARNING_RATE = 0.0001
 VAL_SPLIT = 0.2
 EARLY_STOP_PATIENCE = 10
-SAVE_BEST_MODEL_PATH = "best_unet_brevitas_weights.pth"
+SAVE_BEST_MODEL_PATH = "best_unet_weights.pth"
 
 # Paths to your data
 IMAGES_DIR = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/images"
-MASKS_DIR  = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/masks"
+MASKS_DIR = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/masks"
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
@@ -31,6 +31,9 @@ print(f"Using device: {DEVICE}")
 # Make sure progress/ exists
 os.makedirs("progress", exist_ok=True)
 
+###############################################################################
+# Visual Inspection
+###############################################################################
 def save_visual_inspection(
     model, 
     epoch, 
@@ -45,7 +48,6 @@ def save_visual_inspection(
       (2) ground truth mask
       (3) predicted probability map
     Then saves to `out_file` in progress/ folder.
-    Overwrites with <epoch> as prefix so you get a series of images over epochs.
     """
     model.eval()
 
@@ -89,33 +91,23 @@ def save_visual_inspection(
 # Dice Loss
 ###############################################################################
 class DiceLoss(nn.Module):
-    """
-    Soft Dice Loss. Encourages the model to handle small foreground regions better.
-    """
     def __init__(self, eps=1e-6):
         super().__init__()
         self.eps = eps
 
     def forward(self, logits, targets):
-        # logits: [N, 1, H, W] (raw output from model)
-        # targets: [N, 1, H, W] in [0,1]
-        probs = torch.sigmoid(logits)  # [N,1,H,W], in [0..1]
+        probs = torch.sigmoid(logits)
         probs = probs.view(-1)
         targets = targets.view(-1)
-
         intersection = (probs * targets).sum()
         union = probs.sum() + targets.sum() + self.eps
         dice_score = 2.0 * intersection / union
-        return 1.0 - dice_score  # 1 - DSC => 0 is perfect overlap
+        return 1.0 - dice_score
 
 ###############################################################################
 # Combined BCE + Dice
 ###############################################################################
 class BCEDiceLoss(nn.Module):
-    """
-    Weighted combination of BCEWithLogitsLoss and DiceLoss.
-    Helps with class imbalance.
-    """
     def __init__(self, bce_weight=0.5):
         super().__init__()
         self.bce_weight = bce_weight
@@ -164,21 +156,14 @@ def main():
         masks_dir=MASKS_DIR,
         height=HEIGHT,
         width=WIDTH,
-        augment=True,        
-        flip_prob=0.5,       
-        rotate_prob=0.5,     
-        max_rotate_deg=15,   
-        brightness_prob=0.5, 
+        augment=True,
+        flip_prob=0.5,
+        rotate_prob=0.5,
+        max_rotate_deg=15,
+        brightness_prob=0.5,
         brightness_range=(0.7, 1.3)
     )
     print(f"Total samples: {len(dataset)}")
-
-    # Inspect first sample
-    if len(dataset) > 0:
-        img, mask = dataset[0]
-        print(f"First sample shape: img {img.shape}, mask {mask.shape}")
-        fg_ratio = (mask > 0.5).float().mean().item()
-        print(f"Mask foreground ratio: {fg_ratio:.3f}")
 
     # Train/Val split
     val_size = int(VAL_SPLIT * len(dataset))
@@ -187,23 +172,22 @@ def main():
     print(f"Train samples: {len(train_subset)}, Val samples: {len(val_subset)}")
 
     train_loader = DataLoader(train_subset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader   = DataLoader(val_subset,   batch_size=BATCH_SIZE, shuffle=False)
+    val_loader = DataLoader(val_subset, batch_size=BATCH_SIZE, shuffle=False)
 
     # Create model, loss, optimizer
-    model = UNetBrevitasFINN(in_channels=1, out_channels=1).to(DEVICE)
+    model = UNet(in_channels=1, out_channels=1).to(DEVICE)
     loss_fn = BCEDiceLoss(bce_weight=0.3)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     # Implement Learning Rate Scheduler
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, 
-        mode='min', 
-        factor=0.5, 
-        patience=5, 
+        optimizer,
+        mode='min',
+        factor=0.5,
+        patience=5,
         verbose=True
     )
 
-    # Lists to store losses for plotting
     train_losses = []
     val_losses = []
 
@@ -211,33 +195,21 @@ def main():
     best_val_loss = float("inf")
     epochs_no_improve = 0
 
-    # CSV logging: create or overwrite
-    csv_path = "progress/loss_log.csv"
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["epoch", "train_loss", "val_loss"])
-
     for epoch in range(1, NUM_EPOCHS + 1):
-        # Train & validate
         train_loss = train_one_epoch(model, train_loader, optimizer, loss_fn, DEVICE)
-        val_loss   = validate_one_epoch(model, val_loader, loss_fn, DEVICE)
+        val_loss = validate_one_epoch(model, val_loader, loss_fn, DEVICE)
 
         train_losses.append(train_loss)
         val_losses.append(val_loss)
 
         print(f"Epoch [{epoch}/{NUM_EPOCHS}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
 
-        # Save to CSV
-        with open(csv_path, "a", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([epoch, train_loss, val_loss])
-
-        # Visual inspection
+        # Save visual inspection
         save_visual_inspection(
             model=model,
             epoch=epoch,
             device=DEVICE,
-            dataset=dataset,   # or val_subset.dataset if you'd rather see a validation example
+            dataset=dataset,
             sample_idx=0,
             out_file="visual.png"
         )
@@ -245,7 +217,7 @@ def main():
         # Step scheduler
         scheduler.step(val_loss)
 
-        # Check improvement
+        # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
@@ -259,18 +231,6 @@ def main():
 
     print("Training complete.")
     print(f"Best model saved at {SAVE_BEST_MODEL_PATH} with val_loss {best_val_loss:.4f}")
-
-    # Plot final train/val loss curves
-    epochs_range = range(1, len(train_losses)+1)
-    plt.figure(figsize=(8, 5))
-    plt.plot(epochs_range, train_losses, label="Train Loss")
-    plt.plot(epochs_range, val_losses, label="Val Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Training and Validation Loss")
-    plt.legend()
-    plt.savefig("progress/loss_plot.png", dpi=150)
-    plt.close()
 
 if __name__ == "__main__":
     main()
