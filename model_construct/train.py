@@ -205,14 +205,15 @@ def main():
         print(f"Epoch [{epoch}/{NUM_EPOCHS}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
 
         # Save visual inspection
-        save_visual_inspection(
-            model=model,
-            epoch=epoch,
-            device=DEVICE,
-            dataset=dataset,
-            sample_idx=0,
-            out_file="visual.png"
-        )
+        if epoch % 10 == 0:
+            save_visual_inspection(
+                model=model,
+                epoch=epoch,
+                device=DEVICE,
+                dataset=dataset,
+                sample_idx=0,
+                out_file="visual.png"
+            )
 
         # Step scheduler
         scheduler.step(val_loss)
@@ -220,8 +221,9 @@ def main():
         # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
-            print("  * New best model saved.")
+            if epoch > 60:
+                torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
+                print("  * New best model saved.")
             epochs_no_improve = 0
         else:
             epochs_no_improve += 1
