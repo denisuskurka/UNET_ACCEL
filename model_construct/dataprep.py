@@ -191,11 +191,13 @@ if __name__ == "__main__":
     folder_path_blue = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100/Modra"
     folder_path_green = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100/Zelena"
     folder_path_red = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100/cervena"
+    folder_path_pink = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100/pink"
 
     # BGR values for the colors
     color_bgr_blue = (255, 8, 0)
     color_bgr_green = (0, 255, 0)
     color_bgr_red = (0, 0, 255)
+    color_bgr_pink = (255, 127, 236)
 
     # Blue masks
     #process_images_in_folder(
@@ -208,14 +210,14 @@ if __name__ == "__main__":
     #)
     
     # Green masks
-    process_images_in_folder(
-        folder_path=folder_path_green,
-        color_bgr=color_bgr_green,
-        tolerance=TOLERANCE,
-        output_folder=common_masks_folder,
-        color_suffix="green",
-        show_result=False
-    )
+    #process_images_in_folder(
+    #    folder_path=folder_path_green,
+    #    color_bgr=color_bgr_green,
+    #    tolerance=TOLERANCE,
+    #    output_folder=common_masks_folder,
+    #    color_suffix="green",
+    #    show_result=False
+    #)
 
     # Red masks
     #process_images_in_folder(
@@ -226,6 +228,15 @@ if __name__ == "__main__":
     #    color_suffix="red",
     #    show_result=False
     #)
+
+    process_images_in_folder(
+        folder_path=folder_path_pink,
+        color_bgr=color_bgr_pink,
+        tolerance=TOLERANCE,
+        output_folder=common_masks_folder,
+        color_suffix="pink",
+        show_result=False
+    )
 
     print("All masking operations have completed.")
 

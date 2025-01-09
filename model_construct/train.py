@@ -14,11 +14,11 @@ from model import UNet  # Updated import for the new UNet model
 # 1) Hyperparameters & Settings
 ###############################################################################
 HEIGHT, WIDTH = 128, 128  # image & mask size (should match model input size)
-BATCH_SIZE = 10
-NUM_EPOCHS = 100
-LEARNING_RATE = 0.0001
-VAL_SPLIT = 0.2
-EARLY_STOP_PATIENCE = 10
+BATCH_SIZE = 40
+NUM_EPOCHS = 1000
+LEARNING_RATE = 0.01
+VAL_SPLIT = 0.5
+EARLY_STOP_PATIENCE = 100
 SAVE_BEST_MODEL_PATH = "best_unet_weights.pth"
 
 # Paths to your data
@@ -158,10 +158,10 @@ def main():
         width=WIDTH,
         augment=True,
         flip_prob=0.5,
-        rotate_prob=0.5,
-        max_rotate_deg=15,
-        brightness_prob=0.5,
-        brightness_range=(0.7, 1.3)
+        rotate_prob=0,
+        max_rotate_deg=0,
+        brightness_prob=0,
+        brightness_range=(1, 1)
     )
     print(f"Total samples: {len(dataset)}")
 
@@ -205,7 +205,7 @@ def main():
         print(f"Epoch [{epoch}/{NUM_EPOCHS}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
 
         # Save visual inspection
-        if epoch % 10 == 0:
+        if epoch % 10 == 0 and epoch < 60:
             save_visual_inspection(
                 model=model,
                 epoch=epoch,
@@ -224,6 +224,14 @@ def main():
             if epoch > 60:
                 torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
                 print("  * New best model saved.")
+                save_visual_inspection(
+                    model=model,
+                    epoch=epoch,
+                    device=DEVICE,
+                    dataset=dataset,
+                    sample_idx=0,
+                    out_file="visual.png"
+                )
             epochs_no_improve = 0
         else:
             epochs_no_improve += 1
