@@ -1,90 +1,105 @@
 import os
 import torch
-import torchvision.transforms as T
-from PIL import Image
-import matplotlib.pyplot as plt
+import cv2
+from torch.utils.data import DataLoader
+from model import UNet
+from dataset_infer import RealSegDataset  # Your custom dataset class
 
-from model import UNetBrevitas  # import your quantized U-Net definition
+# Path to the saved model
+MODEL_PATH = "best_unet_weights.pth"
 
-##############################################################################
-# Settings
-##############################################################################
-TEST_DIR = "./test_data"                   # Directory containing test images
-MODEL_WEIGHTS = "best_unet_brevitas_weights.pth"  # Path to saved model weights
-HEIGHT, WIDTH = 128, 128                  # Model expects 128x128 input
+# Directory containing test images
+TEST_IMAGES_DIR = "./test_data"
+
+# Directory to save predictions
+OUTPUT_DIR = "./predictions"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Image dimensions (should match model's input size)
+HEIGHT, WIDTH = 128, 128
+
+# Device configuration
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {DEVICE}")
+
+def load_model(model_path):
+    """
+    Load the trained model.
+    """
+    model = UNet(in_channels=1, out_channels=1).to(DEVICE)
+    model.load_state_dict(torch.load(model_path, map_location=DEVICE))
+    model.eval()
+    return model
+
+def save_predictions(predictions, file_names, original_shapes, output_dir):
+    """
+    Save predictions to the specified output directory.
+    """
+    for pred, file_name, original_shape in zip(predictions, file_names, original_shapes):
+        # Reshape prediction back to original dimensions
+        pred_np = pred.squeeze(0).cpu().numpy()
+        pred_resized = cv2.resize(pred_np, (original_shape[1], original_shape[0]))
+        pred_binary = (pred_resized > 0.5).astype("uint8") * 255  # Threshold to binary mask
+
+        # Save prediction
+        output_path = os.path.join(output_dir, f"pred_{file_name}")
+        cv2.imwrite(output_path, pred_binary)
+        print(f"Saved prediction to {output_path}")
+
+def run_inference(model, test_loader, output_dir):
+    """
+    Run inference on the test dataset.
+    """
+    model.eval()
+    predictions = []
+    file_names = []
+    original_shapes = []
+
+    with torch.no_grad():
+        for images, file_info in test_loader:
+            images = images.to(DEVICE)
+            logits = model(images)
+            probs = torch.sigmoid(logits)
+
+            predictions.extend(probs.cpu())
+            file_names.extend([info["file_name"] for info in file_info])
+            original_shapes.extend([info["original_shape"] for info in file_info])
+
+    save_predictions(predictions, file_names, original_shapes, output_dir)
+
+def custom_collate_fn(batch):
+    """
+    Custom collate function to handle metadata in batches.
+    """
+    images = torch.stack([item[0] for item in batch])  # Stack image tensors
+    file_info = [item[1] for item in batch]  # Keep metadata as a list
+    return images, file_info
 
 def main():
-    # 1) Create the model on CPU first
-    model = UNetBrevitas(in_channels=1, out_channels=1)
-    
-    # 2) Load the state dict onto CPU
-    state_dict = torch.load(MODEL_WEIGHTS, map_location="cpu")
-    model.load_state_dict(state_dict)
+    print("Loading model...")
+    model = load_model(MODEL_PATH)
 
-    # 3) Now move the entire model (including buffers) to DEVICE
-    model.to(DEVICE)
-    model.eval()
+    print("Preparing test dataset...")
+    # Initialize dataset
+    test_dataset = RealSegDataset(
+        images_dir=TEST_IMAGES_DIR,  # Path to test images
+        masks_dir=None,  # No masks needed for inference
+        height=HEIGHT,
+        width=WIDTH,
+        augment=False  # Disable augmentations for inference
+    )
 
-    # 4) Define the transform
-    transform = T.Compose([
-        T.Grayscale(num_output_channels=1),
-        T.Resize((HEIGHT, WIDTH)),
-        T.ToTensor()
-    ])
+    # Create DataLoader
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=1,  # Process one image at a time during inference
+        shuffle=False,
+        collate_fn=custom_collate_fn  # Use the custom collate function
+    )
 
-    # 5) Scan test directory
-    if not os.path.isdir(TEST_DIR):
-        print(f"Test directory '{TEST_DIR}' not found.")
-        return
-
-    test_files = sorted([
-        f for f in os.listdir(TEST_DIR)
-        if os.path.isfile(os.path.join(TEST_DIR, f))
-    ])
-    if not test_files:
-        print(f"No images found in '{TEST_DIR}'.")
-        return
-
-    print(f"Found {len(test_files)} test images in '{TEST_DIR}'.")
-
-    # 6) Inference loop
-    for file_name in test_files:
-        img_path = os.path.join(TEST_DIR, file_name)
-        print(f"\nProcessing file: {img_path}")
-
-        # Load and transform image (CPU)
-        image_pil = Image.open(img_path)
-        input_tensor = transform(image_pil)  # shape [1, H, W]
-
-        # Move the input_tensor to the same device as model
-        input_tensor = input_tensor.unsqueeze(0).to(DEVICE)  # shape [1, 1, H, W]
-
-        with torch.no_grad():
-            output_logits = model(input_tensor)  # shape [1, 1, H, W]
-
-        # Convert logits -> prob
-        output_prob = torch.sigmoid(output_logits)
-
-        # Move back to CPU for plotting
-        input_np = input_tensor.squeeze(0).squeeze(0).cpu().numpy()
-        output_np = output_prob.squeeze(0).squeeze(0).cpu().numpy()
-
-        print("Logits:", output_logits.min().item(), output_logits.max().item())
-        print("Prob:", output_prob.min().item(), output_prob.max().item())
-
-        # Plot
-        fig, axs = plt.subplots(1, 2, figsize=(8, 4))
-        axs[0].imshow(input_np, cmap='gray')
-        axs[0].set_title("Input")
-        axs[0].axis("off")
-
-        axs[1].imshow(output_np, cmap='gray')
-        axs[1].set_title("Output (Sigmoid)")
-        axs[1].axis("off")
-
-        plt.suptitle(f"File: {file_name}")
-        plt.show()
+    print("Running inference...")
+    run_inference(model, test_loader, OUTPUT_DIR)
+    print("Inference complete.")
 
 
 if __name__ == "__main__":
