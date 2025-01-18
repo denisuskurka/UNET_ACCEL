@@ -1,5 +1,5 @@
 import os
-import csv
+import shutil
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -16,8 +16,8 @@ from model import UNet  # Updated import for the new UNet model
 HEIGHT, WIDTH = 128, 128  # image & mask size (should match model input size)
 BATCH_SIZE = 40
 NUM_EPOCHS = 1000
-LEARNING_RATE = 0.01
-VAL_SPLIT = 0.5
+LEARNING_RATE = 0.1
+VAL_SPLIT = 0.3
 EARLY_STOP_PATIENCE = 100
 SAVE_BEST_MODEL_PATH = "best_unet_weights.pth"
 
@@ -150,6 +150,10 @@ def validate_one_epoch(model, loader, loss_fn, device):
 # Main
 ###############################################################################
 def main():
+    # Delele progress folder
+    shutil.rmtree("./progress")
+    os.makedirs("./progress", exist_ok=True)
+
     # Create dataset
     dataset = RealSegDataset(
         images_dir=IMAGES_DIR,
@@ -190,6 +194,7 @@ def main():
 
     train_losses = []
     val_losses = []
+    model_saved = False
 
     # Early stopping
     best_val_loss = float("inf")
@@ -222,6 +227,7 @@ def main():
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             if epoch > 60:
+                model_saved = True
                 torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
                 print("  * New best model saved.")
                 save_visual_inspection(
@@ -238,7 +244,10 @@ def main():
             if epochs_no_improve >= EARLY_STOP_PATIENCE:
                 print("Early stopping due to no improvement.")
                 break
-
+    if model_saved != True:
+        model_saved = True
+        torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
+        print("Saved LAST model!.")
     print("Training complete.")
     print(f"Best model saved at {SAVE_BEST_MODEL_PATH} with val_loss {best_val_loss:.4f}")
 
