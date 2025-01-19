@@ -20,7 +20,7 @@ HEIGHT, WIDTH = 128, 128
 
 # Device configuration
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-DEVICE = "cpu"
+
 print(f"Using device: {DEVICE}")
 
 def load_model(model_path):
