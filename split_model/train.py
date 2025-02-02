@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from dataset import RealSegDataset  # your custom dataset that loads images/masks
-from model import UNet  # Updated import for the new UNet model
+from split_unet import UNetSplit  # Updated import for the new UNet model
 
 ###############################################################################
 # 1) Hyperparameters & Settings
@@ -22,8 +22,8 @@ EARLY_STOP_PATIENCE = 100
 SAVE_BEST_MODEL_PATH = "best_unet_weights.pth"
 
 # Paths to your data
-IMAGES_DIR = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/images"
-MASKS_DIR = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/masks"
+IMAGES_DIR = "./data/images"
+MASKS_DIR = "./data/masks"
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
@@ -179,7 +179,7 @@ def main():
     val_loader = DataLoader(val_subset, batch_size=BATCH_SIZE, shuffle=False)
 
     # Create model, loss, optimizer
-    model = UNet(in_channels=1, out_channels=1).to(DEVICE)
+    model = UNetSplit(in_channels=1, out_channels=1).to(DEVICE)
     loss_fn = BCEDiceLoss(bce_weight=0.3)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
