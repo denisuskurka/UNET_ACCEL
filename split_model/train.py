@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from dataset import RealSegDataset  # your custom dataset that loads images/masks
-from split_unet import UNetSplit  # Updated import for the new UNet model
+from split_unet import UNetSplit  # <--- updated file from above
 
 ###############################################################################
 # 1) Hyperparameters & Settings
@@ -28,7 +28,6 @@ MASKS_DIR = "./data/masks"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
 
-# Make sure progress/ exists
 os.makedirs("progress", exist_ok=True)
 
 ###############################################################################
@@ -42,30 +41,19 @@ def save_visual_inspection(
     sample_idx=0,
     out_file="visual.png"
 ):
-    """
-    Runs inference on `dataset[sample_idx]`, plots:
-      (1) input image
-      (2) ground truth mask
-      (3) predicted probability map
-    Then saves to `out_file` in progress/ folder.
-    """
     model.eval()
 
-    # Grab a single sample from the dataset
-    img, mask = dataset[sample_idx]  # each shape [1,H,W]
-    input_tensor = img.unsqueeze(0).to(device)  # [1,1,H,W]
+    img, mask = dataset[sample_idx]
+    input_tensor = img.unsqueeze(0).to(device)
 
-    # Inference
     with torch.no_grad():
-        logits = model(input_tensor)   # [1,1,H,W]
-        probs = torch.sigmoid(logits)  # [1,1,H,W]
+        logits = model(input_tensor)
+        probs = torch.sigmoid(logits)
 
-    # Convert to CPU numpy for plotting
     input_np = input_tensor.squeeze(0).squeeze(0).cpu().numpy()
     mask_np = mask.squeeze(0).cpu().numpy()
     prob_np = probs.squeeze(0).squeeze(0).cpu().numpy()
 
-    # Plot side-by-side
     fig, axs = plt.subplots(1, 3, figsize=(12, 4))
     axs[0].imshow(input_np, cmap='gray')
     axs[0].set_title("Input")
@@ -82,8 +70,7 @@ def save_visual_inspection(
     fig.suptitle(f"Epoch {epoch} | Sample {sample_idx}")
     plt.tight_layout()
 
-    # Save & close
-    out_path = f"progress/{epoch}_{out_file}"  # e.g. progress/1_visual.png
+    out_path = f"progress/{epoch}_{out_file}"
     plt.savefig(out_path, dpi=150)
     plt.close(fig)
 
@@ -120,7 +107,7 @@ class BCEDiceLoss(nn.Module):
         return self.bce_weight * bce_val + (1.0 - self.bce_weight) * dice_val
 
 ###############################################################################
-# Training & Validation Loops
+# Training & Validation
 ###############################################################################
 def train_one_epoch(model, loader, optimizer, loss_fn, device):
     model.train()
@@ -146,30 +133,20 @@ def validate_one_epoch(model, loader, loss_fn, device):
             val_loss += loss.item()
     return val_loss / len(loader)
 
-###############################################################################
-# Main
-###############################################################################
 def main():
-    # Delele progress folder
-    shutil.rmtree("./progress")
+    shutil.rmtree("./progress", ignore_errors=True)
     os.makedirs("./progress", exist_ok=True)
 
-    # Create dataset
     dataset = RealSegDataset(
         images_dir=IMAGES_DIR,
         masks_dir=MASKS_DIR,
         height=HEIGHT,
         width=WIDTH,
         augment=True,
-        flip_prob=0.5,
-        rotate_prob=0,
-        max_rotate_deg=0,
-        brightness_prob=0,
-        brightness_range=(1, 1)
+        flip_prob=0.5
     )
     print(f"Total samples: {len(dataset)}")
 
-    # Train/Val split
     val_size = int(VAL_SPLIT * len(dataset))
     train_size = len(dataset) - val_size
     train_subset, val_subset = random_split(dataset, [train_size, val_size])
@@ -178,27 +155,28 @@ def main():
     train_loader = DataLoader(train_subset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_subset, batch_size=BATCH_SIZE, shuffle=False)
 
-    # Create model, loss, optimizer
-    model = UNetSplit(in_channels=1, out_channels=1).to(DEVICE)
+    model = UNetSplit(
+        in_ch=1,
+        out_ch=1,
+        encoder_channels=[64,128,256,512],
+        decoder_channels=[512,256,128,64],
+        bottleneck_channels=1024,
+        weight_bit_width=8,
+        act_bit_width=8
+    ).to(DEVICE)
+
     loss_fn = BCEDiceLoss(bce_weight=0.3)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    # Implement Learning Rate Scheduler
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        mode='min',
-        factor=0.5,
-        patience=5,
-        verbose=True
+        optimizer, mode='min', factor=0.5, patience=5, verbose=True
     )
 
     train_losses = []
     val_losses = []
-    model_saved = False
-
-    # Early stopping
     best_val_loss = float("inf")
     epochs_no_improve = 0
+    model_saved = False
 
     for epoch in range(1, NUM_EPOCHS + 1):
         train_loss = train_one_epoch(model, train_loader, optimizer, loss_fn, DEVICE)
@@ -209,43 +187,26 @@ def main():
 
         print(f"Epoch [{epoch}/{NUM_EPOCHS}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
 
-        # Save visual inspection
         if epoch % 10 == 0 and epoch < 60:
-            save_visual_inspection(
-                model=model,
-                epoch=epoch,
-                device=DEVICE,
-                dataset=dataset,
-                sample_idx=0,
-                out_file="visual.png"
-            )
+            save_visual_inspection(model, epoch, DEVICE, dataset, sample_idx=0)
 
-        # Step scheduler
         scheduler.step(val_loss)
 
-        # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             if epoch > 60:
                 model_saved = True
                 torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
                 print("  * New best model saved.")
-                save_visual_inspection(
-                    model=model,
-                    epoch=epoch,
-                    device=DEVICE,
-                    dataset=dataset,
-                    sample_idx=0,
-                    out_file="visual.png"
-                )
+                save_visual_inspection(model, epoch, DEVICE, dataset, sample_idx=0)
             epochs_no_improve = 0
         else:
             epochs_no_improve += 1
             if epochs_no_improve >= EARLY_STOP_PATIENCE:
                 print("Early stopping due to no improvement.")
                 break
-    if model_saved != True:
-        model_saved = True
+
+    if not model_saved:
         torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
         print("Saved LAST model!.")
     print("Training complete.")
