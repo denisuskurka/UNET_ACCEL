@@ -35,7 +35,7 @@ def build_model(HEIGHT, WIDTH):
     # ---- Encoder Block ----
     # Encoder: QKeras convolution block with 8 filters, 3×3 kernel, padding same.
     encoder = QConv2DBatchnorm(
-        filters=8,
+        filters=1,
         kernel_size=(3, 3),
         strides=(1, 1),
         padding='same',
@@ -53,7 +53,7 @@ def build_model(HEIGHT, WIDTH):
     
     # ---- Bottleneck ----
     bottleneck = QConv2DBatchnorm(
-        filters=16,
+        filters=1,
         kernel_size=(3, 3),
         strides=(1, 1),
         padding='same',
@@ -73,7 +73,7 @@ def build_model(HEIGHT, WIDTH):
     decoder_concat = Concatenate(name='skip_concat')([decoder_upsample, skip_connection])
     # Apply a QKeras convolution block with 8 filters.
     decoder_conv = QConv2DBatchnorm(
-        filters=8,
+        filters=1,
         kernel_size=(3, 3),
         strides=(1, 1),
         padding='same',

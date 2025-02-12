@@ -5,7 +5,8 @@ This script:
   • Loads one image from the images folder.
   • Preprocesses it (grayscale, resized to 128×128).
   • Exports the preprocessed image as 'X_test.npy'.
-  • Loads the quantized model (using a custom object scope to register QKeras layers).
+  • Loads the quantized model (using a custom object scope to register QKeras layers)
+    with compile=False (to avoid loading the custom loss).
   • Runs inference to get a baseline response.
   • Exports the predicted mask as 'Y_baseline.npy'.
   • Displays the input image and predicted mask using Matplotlib.
@@ -28,10 +29,10 @@ print("Running on CPU only.")
 # ----------------------------
 IMAGE_HEIGHT = 128
 IMAGE_WIDTH  = 128
-IMAGES_DIR   = "./data/images"         # folder with your images
-MODEL_PATH   = "quantized_cnn_model_cpu.h5"  # path to your saved QKeras model
-INPUT_EXPORT = "X_test.npy"             # filename to export input image
-OUTPUT_EXPORT = "Y_baseline.npy"        # filename to export model prediction
+IMAGES_DIR   = "./data/images"               # folder with your images
+MODEL_PATH   = "quantized_cnn_model_cpu.h5"    # path to your saved QKeras model
+INPUT_EXPORT = "X_test.npy"                  # filename to export input image
+OUTPUT_EXPORT = "Y_baseline.npy"             # filename to export model prediction
 
 # ----------------------------
 # Utility Functions
@@ -94,17 +95,18 @@ def main():
     # Expand dims so that the shape becomes (1, 128, 128, 1)
     image_batch = tf.expand_dims(image, axis=0)
     
-    # Export the preprocessed input image as X_test.npy
+    # Export the preprocessed input image as X_test.npy.
     np.save(INPUT_EXPORT, image.numpy())
     print(f"Exported preprocessed input image to '{INPUT_EXPORT}' with shape {image.numpy().shape}.")
     
     # Load the QKeras model using a custom object scope so that QKeras layers are recognized.
+    # Use compile=False to avoid reloading the custom loss.
     custom_objects = {
         "QConv2DBatchnorm": QConv2DBatchnorm,
         "QActivation": QActivation
     }
     with tf.keras.utils.custom_object_scope(custom_objects):
-        model = tf.keras.models.load_model(MODEL_PATH)
+        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
     print("Model loaded from:", MODEL_PATH)
     
     # Run inference.
@@ -114,7 +116,7 @@ def main():
     pred_mask = np.squeeze(pred)
     print("Prediction shape:", pred_mask.shape)
     
-    # Export the predicted mask as Y_baseline.npy
+    # Export the predicted mask as Y_baseline.npy.
     np.save(OUTPUT_EXPORT, pred_mask)
     print(f"Exported model prediction to '{OUTPUT_EXPORT}'.")
     
