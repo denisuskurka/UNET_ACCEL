@@ -24,6 +24,8 @@ class RealSegDataset(Dataset):
         masks_dir,
         height=128,
         width=128,
+        height_mask=128,
+        width_mask=128,
         augment=False,        # enable/disable all augmentation
         flip_prob=0.5,        # probability of flips (horizontal/vertical)
         rotate_prob=0,      # probability of random rotation
@@ -36,6 +38,8 @@ class RealSegDataset(Dataset):
         self.masks_dir = masks_dir
         self.height = height
         self.width = width
+        self.height_mask = height_mask
+        self.width_mask = width_mask
         self.augment = augment
 
         self.flip_prob = flip_prob
@@ -63,7 +67,7 @@ class RealSegDataset(Dataset):
         ])
         self.mask_transform = T.Compose([
             T.Grayscale(num_output_channels=1),
-            T.Resize((self.height, self.width)),
+            T.Resize((self.height_mask, self.width_mask)),
         ])
 
     def __len__(self):

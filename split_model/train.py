@@ -1,3 +1,5 @@
+# File: train.py
+
 import os
 import shutil
 import torch
@@ -8,17 +10,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from dataset import RealSegDataset  # your custom dataset that loads images/masks
-from split_unet import UNetSplit  # <--- updated file from above
+from split_unet import UNetSplit  # the updated model which works in NCHW
 
 ###############################################################################
 # 1) Hyperparameters & Settings
 ###############################################################################
-HEIGHT, WIDTH = 128, 128  # image & mask size (should match model input size)
+HEIGHT, WIDTH = 128, 128  # image & mask size (must match model's assumption)
+HEIGHT_MASK, WIDTH_MASK = 128, 128
 BATCH_SIZE = 40
 NUM_EPOCHS = 1000
 LEARNING_RATE = 0.1
 VAL_SPLIT = 0.3
-EARLY_STOP_PATIENCE = 100
+EARLY_STOP_PATIENCE = 1
 SAVE_BEST_MODEL_PATH = "best_unet_weights.pth"
 
 # Paths to your data
@@ -41,18 +44,25 @@ def save_visual_inspection(
     sample_idx=0,
     out_file="visual.png"
 ):
+    """
+    Runs inference on dataset[sample_idx] (which is assumed to be NCHW: [1,H,W] per sample).
+    1) Adds a batch dimension => (1,1,H,W)
+    2) Forwards through the model (which expects NCHW).
+    3) Applies Sigmoid on the output.
+    4) Displays the input image, ground truth mask and predicted probability map.
+    """
     model.eval()
-
-    img, mask = dataset[sample_idx]
-    input_tensor = img.unsqueeze(0).to(device)
+    img, mask = dataset[sample_idx]  # each is expected to be in shape (1, H, W)
+    input_tensor = img.unsqueeze(0).to(device)  # shape: (1, 1, H, W)
 
     with torch.no_grad():
-        logits = model(input_tensor)
+        logits = model(input_tensor)   # model outputs in NCHW (e.g. (1,1,H,W))
         probs = torch.sigmoid(logits)
 
-    input_np = input_tensor.squeeze(0).squeeze(0).cpu().numpy()
-    mask_np = mask.squeeze(0).cpu().numpy()
-    prob_np = probs.squeeze(0).squeeze(0).cpu().numpy()
+    # Convert tensors to numpy arrays for plotting
+    input_np = input_tensor.squeeze(0).squeeze(0).cpu().numpy()  # shape: (H, W)
+    mask_np = mask.squeeze(0).cpu().numpy()                      # shape: (H, W)
+    prob_np = probs.squeeze(0).squeeze(0).cpu().numpy()            # shape: (H, W)
 
     fig, axs = plt.subplots(1, 3, figsize=(12, 4))
     axs[0].imshow(input_np, cmap='gray')
@@ -69,7 +79,6 @@ def save_visual_inspection(
 
     fig.suptitle(f"Epoch {epoch} | Sample {sample_idx}")
     plt.tight_layout()
-
     out_path = f"progress/{epoch}_{out_file}"
     plt.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -83,6 +92,10 @@ class DiceLoss(nn.Module):
         self.eps = eps
 
     def forward(self, logits, targets):
+        """
+        Assumes logits and targets are in NCHW.
+        Applies Sigmoid, flattens, then computes Dice loss.
+        """
         probs = torch.sigmoid(logits)
         probs = probs.view(-1)
         targets = targets.view(-1)
@@ -102,23 +115,34 @@ class BCEDiceLoss(nn.Module):
         self.dice_loss = DiceLoss()
 
     def forward(self, logits, targets):
+        """
+        Expects logits and targets in NCHW format.
+        Computes a weighted sum of BCE and Dice losses.
+        """
         bce_val = self.bce_loss(logits, targets)
         dice_val = self.dice_loss(logits, targets)
         return self.bce_weight * bce_val + (1.0 - self.bce_weight) * dice_val
 
 ###############################################################################
-# Training & Validation
+# Training & Validation Loops
 ###############################################################################
 def train_one_epoch(model, loader, optimizer, loss_fn, device):
     model.train()
     running_loss = 0.0
     for images, masks in loader:
+        # images, masks are in NCHW: (B,1,H,W)
         images, masks = images.to(device), masks.to(device)
         optimizer.zero_grad()
-        outputs = model(images)
-        loss = loss_fn(outputs, masks)
+
+        # Forward pass directly (no permutation needed)
+        logits = model(images)  # output in NCHW
+        loss = loss_fn(logits, masks)
         loss.backward()
         optimizer.step()
+
+        if hasattr(model, 'clip_weights'):
+            model.clip_weights(-1, 1)
+
         running_loss += loss.item()
     return running_loss / len(loader)
 
@@ -128,20 +152,24 @@ def validate_one_epoch(model, loader, loss_fn, device):
     with torch.no_grad():
         for images, masks in loader:
             images, masks = images.to(device), masks.to(device)
-            outputs = model(images)
-            loss = loss_fn(outputs, masks)
-            val_loss += loss.item()
+            logits = model(images)
+            val_loss += loss_fn(logits, masks).item()
     return val_loss / len(loader)
 
+###############################################################################
 def main():
+    # Optionally clear old progress
     shutil.rmtree("./progress", ignore_errors=True)
     os.makedirs("./progress", exist_ok=True)
 
+    # Create the dataset (expects images/masks in NCHW, e.g., (1,H,W) per sample)
     dataset = RealSegDataset(
         images_dir=IMAGES_DIR,
         masks_dir=MASKS_DIR,
         height=HEIGHT,
         width=WIDTH,
+        height_mask=HEIGHT_MASK,
+        width_mask=WIDTH_MASK,
         augment=True,
         flip_prob=0.5
     )
@@ -155,6 +183,7 @@ def main():
     train_loader = DataLoader(train_subset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_subset, batch_size=BATCH_SIZE, shuffle=False)
 
+    # Instantiate the UNetSplit model (now operating in NCHW)
     model = UNetSplit(
         in_ch=1,
         out_ch=1,
@@ -167,13 +196,10 @@ def main():
 
     loss_fn = BCEDiceLoss(bce_weight=0.3)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.5, patience=5, verbose=True
     )
 
-    train_losses = []
-    val_losses = []
     best_val_loss = float("inf")
     epochs_no_improve = 0
     model_saved = False
@@ -182,11 +208,7 @@ def main():
         train_loss = train_one_epoch(model, train_loader, optimizer, loss_fn, DEVICE)
         val_loss = validate_one_epoch(model, val_loader, loss_fn, DEVICE)
 
-        train_losses.append(train_loss)
-        val_losses.append(val_loss)
-
         print(f"Epoch [{epoch}/{NUM_EPOCHS}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
-
         if epoch % 10 == 0 and epoch < 60:
             save_visual_inspection(model, epoch, DEVICE, dataset, sample_idx=0)
 
@@ -208,7 +230,7 @@ def main():
 
     if not model_saved:
         torch.save(model.state_dict(), SAVE_BEST_MODEL_PATH)
-        print("Saved LAST model!.")
+        print("Saved LAST model!")
     print("Training complete.")
     print(f"Best model saved at {SAVE_BEST_MODEL_PATH} with val_loss {best_val_loss:.4f}")
 
