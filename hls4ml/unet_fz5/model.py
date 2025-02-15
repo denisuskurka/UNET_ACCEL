@@ -22,6 +22,7 @@ from tensorflow.keras.layers import Input, MaxPooling2D, UpSampling2D, Concatena
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l1
 from qkeras import QConv2DBatchnorm, QActivation
+import numpy as np
 
 def build_model(HEIGHT, WIDTH):
     """
@@ -130,3 +131,12 @@ if __name__ == "__main__":
     HEIGHT = 128
     WIDTH = 128
     model = build_model(HEIGHT, WIDTH)
+
+    print("MODEL CHECK:")
+    for layer in model.layers:
+      if layer.__class__.__name__ in ['Conv2D', 'Dense']:
+          w = layer.get_weights()[0]
+          layersize = np.prod(w.shape)
+          print("{}: {}".format(layer.name, layersize))  # 0 = weights, 1 = biases
+          if layersize > 4096:  # assuming that shape[0] is batch, i.e., 'None'
+              print("Layer {} is too large ({}), are you sure you want to train?".format(layer.name, layersize))

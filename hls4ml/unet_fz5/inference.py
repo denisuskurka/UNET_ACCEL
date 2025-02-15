@@ -21,6 +21,7 @@ from tensorflow_model_optimization.sparsity import keras as sparsity
 from tensorflow_model_optimization.python.core.sparsity.keras import pruning_callbacks
 from qkeras.utils import _add_supported_quantized_objects
 from tensorflow_model_optimization.python.core.sparsity.keras import pruning_wrapper
+from loss import bce_dice_loss
 
 # Import the needed QKeras layers for custom objects.
 from qkeras import QConv2DBatchnorm, QActivation
@@ -106,10 +107,12 @@ def main():
     
     # Load the QKeras model using a custom object scope so that QKeras layers are recognized.
     # Use compile=False to avoid reloading the custom loss.
-    co = {}
+    co = {
+        "loss":bce_dice_loss(bce_weight=0.3)
+    }
     _add_supported_quantized_objects(co)
     co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
-    model = tf.keras.models.load_model(MODEL_PATH, compile=False, custom_objects=co)
+    model = tf.keras.models.load_model(MODEL_PATH, custom_objects=co)
     print("Model loaded from:", MODEL_PATH)
     
     # Run inference.
