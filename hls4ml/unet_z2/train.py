@@ -16,17 +16,13 @@ import numpy as np
 from dataset import get_image_mask_paths, create_dataset
 from model import build_model
 
-# Force TensorFlow to use the CPU only.
-tf.config.set_visible_devices([], 'GPU')
-print("Running on CPU only.")
-
 # ----------------------------
 # Parameters
 # ----------------------------
 HEIGHT, WIDTH = 128, 128      # image/mask dimensions
-BATCH_SIZE = 16               # adjust as needed
-n_epochs = 100
-LEARNING_RATE = 3e-3          # learning rate
+BATCH_SIZE = 3               # adjust as needed
+n_epochs = 1000
+LEARNING_RATE = 0.1          # learning rate
 
 # Directories for your data (make sure these paths are correct)
 IMAGES_DIR = "./data/images"
@@ -78,7 +74,7 @@ def bce_dice_loss(bce_weight=0.3):
 # ----------------------------
 image_paths, mask_paths = get_image_mask_paths(IMAGES_DIR, MASKS_DIR)
 n_samples = len(image_paths)
-split_idx = int(0.7 * n_samples)  # 70% for training, 30% for validation
+split_idx = int(0.8 * n_samples)  # 70% for training, 30% for validation
 
 train_image_paths, val_image_paths = image_paths[:split_idx], image_paths[split_idx:]
 train_mask_paths, val_mask_paths = mask_paths[:split_idx], mask_paths[split_idx:]
@@ -94,7 +90,7 @@ model = build_model(HEIGHT, WIDTH)
 # ----------------------------
 # Compile the Model with Combined BCE + Dice Loss
 # ----------------------------
-loss_fn = bce_dice_loss(bce_weight=0.1)
+loss_fn = bce_dice_loss(bce_weight=0.5)
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 model.compile(loss=loss_fn, optimizer=optimizer, metrics=["accuracy"])
 
@@ -106,7 +102,7 @@ callbacks = [
     tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, verbose=1)
 ]
 
-print("Starting training on CPU...")
+print("Starting training...")
 start = time.time()
 history = model.fit(train_ds, epochs=n_epochs, validation_data=val_ds, callbacks=callbacks, verbose=1)
 end = time.time()
