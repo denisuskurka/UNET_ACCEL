@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """
-A simple inference script for a QKeras model.
-This script:
+A simple inference script for the float U-Net model.
+
+Steps:
   • Loads one image from the images folder.
   • Preprocesses it (grayscale, resized to 128×128).
   • Exports the preprocessed image as 'X_test.npy'.
-  • Loads the quantized model (using a custom object scope to register QKeras layers)
-    with compile=False (to avoid loading the custom loss).
+  • Loads the float model (with compile=False to avoid requiring the training loss).
   • Runs inference to get a baseline response.
   • Exports the predicted mask as 'Y_baseline.npy'.
   • Displays the input image and predicted mask using Matplotlib.
@@ -16,17 +16,8 @@ import os
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-import tensorflow_model_optimization as tfmot
-from tensorflow_model_optimization.sparsity import keras as sparsity
-from tensorflow_model_optimization.python.core.sparsity.keras import pruning_callbacks
-from qkeras.utils import _add_supported_quantized_objects
-from tensorflow_model_optimization.python.core.sparsity.keras import pruning_wrapper
-from loss import bce_dice_loss, dice_coefficient
 
-# Import the needed QKeras layers for custom objects.
-from qkeras import QConv2DBatchnorm, QActivation
-
-# Force TensorFlow to use the CPU only.
+# Force TensorFlow to use the CPU only (optional).
 tf.config.set_visible_devices([], 'GPU')
 print("Running on CPU only.")
 
@@ -35,10 +26,10 @@ print("Running on CPU only.")
 # ----------------------------
 IMAGE_HEIGHT = 128
 IMAGE_WIDTH  = 128
-IMAGES_DIR   = "./data/images"               # folder with your images
-MODEL_PATH   = "quantized_cnn_model_final.h5"    # path to your saved QKeras model
-INPUT_EXPORT = "X_test.npy"                  # filename to export input image
-OUTPUT_EXPORT = "Y_baseline.npy"             # filename to export model prediction
+IMAGES_DIR   = "./data/images"            # folder with your images
+MODEL_PATH   = "quantized_cnn_model_final.h5"       # path to your saved float model
+INPUT_EXPORT = "X_test.npy"               # filename to export input image
+OUTPUT_EXPORT = "Y_baseline.npy"          # filename to export model prediction
 
 # ----------------------------
 # Utility Functions
@@ -98,36 +89,29 @@ def main():
     
     # Load and preprocess the image.
     image = load_and_preprocess_image(image_path)
-    # Expand dims so that the shape becomes (1, 128, 128, 1)
+    # Expand dims => shape becomes (1, 128, 128, 1) for batch inference
     image_batch = tf.expand_dims(image, axis=0)
     
-    # Export the preprocessed input image as X_test.npy.
+    # Export the preprocessed input image as X_test.npy
     np.save(INPUT_EXPORT, image.numpy())
     print(f"Exported preprocessed input image to '{INPUT_EXPORT}' with shape {image.numpy().shape}.")
     
-    # Load the QKeras model using a custom object scope so that QKeras layers are recognized.
-    # Use compile=False to avoid reloading the custom loss.
-    co = {
-        "loss":bce_dice_loss(bce_weight=0.3),
-        "dice_coefficient":dice_coefficient
-    }
-    _add_supported_quantized_objects(co)
-    co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
-    model = tf.keras.models.load_model(MODEL_PATH, custom_objects=co)
+    # Load the float model (no custom objects, no compile).
+    model = tf.keras.models.load_model(MODEL_PATH, compile=False)
     print("Model loaded from:", MODEL_PATH)
     
     # Run inference.
     print("Running inference...")
     pred = model.predict(image_batch)
-    # Remove batch dimension.
+    # Remove batch dimension => shape (128, 128) if (1,128,128,1)
     pred_mask = np.squeeze(pred)
     print("Prediction shape:", pred_mask.shape)
     
-    # Export the predicted mask as Y_baseline.npy.
+    # Export the predicted mask as Y_baseline.npy
     np.save(OUTPUT_EXPORT, pred_mask)
     print(f"Exported model prediction to '{OUTPUT_EXPORT}'.")
     
-    # Display the input image and predicted mask.
+    # Display the input image and predicted mask
     show_result(image.numpy(), pred_mask)
 
 if __name__ == "__main__":

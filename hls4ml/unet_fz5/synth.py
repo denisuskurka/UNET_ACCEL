@@ -25,7 +25,7 @@ co = {
     "loss":bce_dice_loss(bce_weight=0.3)
 }
 _add_supported_quantized_objects(co)
-os.environ['PATH'] = os.environ['XILINX_VITIS'] + '/bin:' + os.environ['PATH']
+os.environ['PATH'] = os.environ['XILINX_VIVADO'] + '/bin:' + os.environ['PATH']
 co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
 
 # Load and strip pruning from the quantized model.
@@ -33,12 +33,13 @@ qmodel = tf.keras.models.load_model('quantized_cnn_model_cpu.h5', custom_objects
 qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
-hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='name', backend='Vitis')
+hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model')
 hls_config_q['Model']['ReuseFactor'] = 64
 hls_config_q['Model']['Precision'] = 'ap_fixed<6,0>'
+hls_config_q['Part'] = 'xczu5ev-sfvc784-1-i'
 plotting.print_dict(hls_config_q)
 
-cfg_q = hls4ml.converters.create_config(backend='Vitis')
+cfg_q = hls4ml.converters.create_config(backend='Vivado')
 cfg_q['IOType'] = 'io_stream'  # Must set this if using CNNs!
 cfg_q['HLSConfig'] = hls_config_q
 cfg_q['KerasModel'] = qmodel
@@ -51,7 +52,7 @@ hls_model_q.compile()
 
 # Compare the numerical output of the two models.
 numerical(model=qmodel, hls_model=hls_model_q)
-hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_file=None)
+hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_file="model.png")
 
 # ---------------------------
 # Synthesize!
@@ -94,7 +95,7 @@ from pathlib import Path
 
 import pprint
 
-data_quantized_pruned = getReports('quantized_pruned_cnn')
+#data_quantized_pruned = getReports('quantized_pruned_cnn')
 
-print("\n Resource usage and latency: Pruned + quantized")
-pprint.pprint(data_quantized_pruned)
+#print("\n Resource usage and latency: Pruned + quantized")
+#pprint.pprint(data_quantized_pruned)
