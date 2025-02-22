@@ -35,7 +35,7 @@ qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
 hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model')
-hls_config_q['Model']['ReuseFactor'] = 1
+hls_config_q['Model']['ReuseFactor'] = 4
 hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
 #hls_config_q['Model']['Strategy'] = 'Resource'
 hls_config_q['Part'] = 'xczu5ev-sfvc784-1-i'

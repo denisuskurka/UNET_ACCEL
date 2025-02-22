@@ -25,10 +25,10 @@ print("Running on CPU only.")
 # ----------------------------
 # Parameters
 # ----------------------------
-IMAGE_HEIGHT = 50
-IMAGE_WIDTH  = 50
+IMAGE_HEIGHT = 64
+IMAGE_WIDTH  = 64
 IMAGES_DIR   = "./data/images"            
-MODEL_PATH   = "quantized_cnn_model_final_test.h5"    
+MODEL_PATH   = "quantized_cnn_model_final.h5"    
 INPUT_EXPORT = "X_test.npy"                
 OUTPUT_EXPORT = "Y_baseline.npy"           
 

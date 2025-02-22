@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 # ----------------------------
 # Parameters
 # ----------------------------
-HEIGHT, WIDTH = 50, 50
+HEIGHT, WIDTH = 64, 64
 BATCH_SIZE = 8
 N_EPOCHS = 300
 LEARNING_RATE = 1e-3
@@ -32,7 +32,7 @@ MASKS_DIR = "./data/masks"
 # ending by the 10th epoch
 def pruneFunction(layer):
     pruning_params = {
-        'pruning_schedule': sparsity.PolynomialDecay(initial_sparsity=0.0, final_sparsity=0.0, begin_step=0, end_step=2000, frequency=100)
+        'pruning_schedule': sparsity.PolynomialDecay(initial_sparsity=0.0, final_sparsity=0.75, begin_step=0, end_step=2000, frequency=100)
         #"pruning_schedule": sparsity.ConstantSparsity(0.5, begin_step=0, frequency=50)
     }
     if isinstance(layer, tf.keras.layers.Conv2D):
@@ -135,7 +135,7 @@ print(f"\nTraining completed in {(end - start) / 60.0:.2f} minutes.")
 # Save the Final Model
 # ----------------------------
 model = strip_pruning(model)
-model.save('quantized_cnn_model_final_test.h5')
+model.save('quantized_cnn_model_final.h5')
 print("Done.")
 
 # ----------------------------
