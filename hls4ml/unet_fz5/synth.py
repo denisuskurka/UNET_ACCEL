@@ -12,7 +12,7 @@ import numpy as np
 from pathlib import Path
 import pprint
 import plotting
-from loss import bce_dice_loss
+from loss import bce_dice_loss, dice_coefficient
 
 from dataset import get_image_mask_paths, create_dataset
 
@@ -22,21 +22,26 @@ print("Running on CPU only.")
 
 # Setup custom objects for loading the model
 co = {
-    "loss":bce_dice_loss(bce_weight=0.3)
+    "loss":bce_dice_loss(bce_weight=0.3),
+    "dice_coefficient":dice_coefficient
 }
 _add_supported_quantized_objects(co)
 os.environ['PATH'] = os.environ['XILINX_VIVADO'] + '/bin:' + os.environ['PATH']
 co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
 
 # Load and strip pruning from the quantized model.
-qmodel = tf.keras.models.load_model('quantized_cnn_model_cpu.h5', custom_objects=co)
+qmodel = tf.keras.models.load_model('quantized_cnn_model_final.h5', custom_objects=co)
 qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
 hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model')
-hls_config_q['Model']['ReuseFactor'] = 64
-hls_config_q['Model']['Precision'] = 'ap_fixed<6,0>'
+hls_config_q['Model']['ReuseFactor'] = 1
+hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
+#hls_config_q['Model']['Strategy'] = 'Resource'
 hls_config_q['Part'] = 'xczu5ev-sfvc784-1-i'
+#hls_config_q['Strategy'] = 'Resource'
+hls_config_q['Flows'] = ['vivado:fifo_depth_optimization']
+hls4ml.model.optimizer.get_optimizer('vivado:fifo_depth_optimization').configure(profiling_fifo_depth=100_000)
 plotting.print_dict(hls_config_q)
 
 cfg_q = hls4ml.converters.create_config(backend='Vivado')
@@ -57,7 +62,7 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # ---------------------------
 # Synthesize!
 # ---------------------------
-hls_model_q.build(csim=False, synth=True, vsynth=True, export=True)
+hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True)
 
 #!sed -n '30,45p' quantized_pruned_cnn/myproject_vivado_accelerator/project_1.runs/impl_1/design_1_wrapper_utilization_placed.rpt
 
@@ -95,7 +100,7 @@ from pathlib import Path
 
 import pprint
 
-#data_quantized_pruned = getReports('quantized_pruned_cnn')
+data_quantized_pruned = getReports('quantized_pruned_cnn')
 
-#print("\n Resource usage and latency: Pruned + quantized")
-#pprint.pprint(data_quantized_pruned)
+print("\n Resource usage and latency: Pruned + quantized")
+pprint.pprint(data_quantized_pruned)

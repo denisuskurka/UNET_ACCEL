@@ -6,25 +6,40 @@ without pruning, showing the first image+mask with matplotlib, using a Dice metr
 
 import os
 import time
-import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
-
+import numpy as np
 from dataset import get_image_mask_paths, create_dataset
-#from modelf import build_model
 from model import build_model
 from loss import bce_dice_loss, dice_coefficient
+import tensorflow_model_optimization as tfmot
+from tensorflow_model_optimization.sparsity import keras as sparsity
+from tensorflow_model_optimization.python.core.sparsity.keras import pruning_callbacks
+from tensorflow_model_optimization.sparsity.keras import strip_pruning
+import matplotlib.pyplot as plt
 
 # ----------------------------
 # Parameters
 # ----------------------------
-HEIGHT, WIDTH = 128, 128
-BATCH_SIZE = 4
-N_EPOCHS = 1000
+HEIGHT, WIDTH = 50, 50
+BATCH_SIZE = 8
+N_EPOCHS = 300
 LEARNING_RATE = 1e-3
 
 IMAGES_DIR = "./data/images"
 MASKS_DIR = "./data/masks"
+
+# Prune all convolutional and dense layers gradually from 0 to 50% sparsity every 2 epochs,
+# ending by the 10th epoch
+def pruneFunction(layer):
+    pruning_params = {
+        'pruning_schedule': sparsity.PolynomialDecay(initial_sparsity=0.0, final_sparsity=0.0, begin_step=0, end_step=2000, frequency=100)
+        #"pruning_schedule": sparsity.ConstantSparsity(0.5, begin_step=0, frequency=50)
+    }
+    if isinstance(layer, tf.keras.layers.Conv2D):
+        return tfmot.sparsity.keras.prune_low_magnitude(layer, **pruning_params)
+    if isinstance(layer, tf.keras.layers.Dense) and layer.name != 'output_dense':
+        return tfmot.sparsity.keras.prune_low_magnitude(layer, **pruning_params)
+    return layer
 
 # ----------------------------
 # Data Loading
@@ -33,6 +48,7 @@ image_paths, mask_paths = get_image_mask_paths(IMAGES_DIR, MASKS_DIR)
 n_samples = len(image_paths)
 
 split_idx = int(0.9 * n_samples)
+NSTEPS = split_idx // BATCH_SIZE
 train_image_paths, val_image_paths = image_paths[:split_idx], image_paths[split_idx:]
 train_mask_paths, val_mask_paths = mask_paths[:split_idx], mask_paths[split_idx:]
 
@@ -60,6 +76,7 @@ plt.show()
 # Build & Compile Model
 # ----------------------------
 model = build_model(HEIGHT, WIDTH)
+model = tf.keras.models.clone_model(model, clone_function=pruneFunction)
 
 loss_fn = bce_dice_loss(bce_weight=0.3)
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
@@ -82,19 +99,20 @@ checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
 
 earlystop_cb = tf.keras.callbacks.EarlyStopping(
     monitor="val_loss",
-    patience=8,
+    patience=1000,
     restore_best_weights=True,
     verbose=1
 )
 
 reduce_lr_cb = tf.keras.callbacks.ReduceLROnPlateau(
     monitor="val_loss",
-    factor=0.5,
-    patience=3,
+    factor=0.1,
+    patience=500,
     verbose=1
 )
 
-callbacks = [checkpoint_cb, earlystop_cb, reduce_lr_cb]
+callbacks = [checkpoint_cb, earlystop_cb, pruning_callbacks.UpdatePruningStep()]
+#callbacks = [checkpoint_cb, earlystop_cb, reduce_lr_cb]
 
 # ----------------------------
 # Training
@@ -116,5 +134,35 @@ print(f"\nTraining completed in {(end - start) / 60.0:.2f} minutes.")
 # ----------------------------
 # Save the Final Model
 # ----------------------------
-model.save('quantized_cnn_model_final.h5')
+model = strip_pruning(model)
+model.save('quantized_cnn_model_final_test.h5')
 print("Done.")
+
+# ----------------------------
+# Check sparsity
+# ----------------------------
+def doWeights(model):
+    allWeightsByLayer = {}
+    for layer in model.layers:
+        if (layer._name).find("batch") != -1 or len(layer.get_weights()) < 1:
+            continue
+        weights = layer.weights[0].numpy().flatten()
+        allWeightsByLayer[layer._name] = weights
+        print('Layer {}: % of zeros = {}'.format(layer._name, np.sum(weights == 0) / np.size(weights)))
+
+    labelsW = []
+    histosW = []
+
+    for key in reversed(sorted(allWeightsByLayer.keys())):
+        labelsW.append(key)
+        histosW.append(allWeightsByLayer[key])
+
+    fig = plt.figure(figsize=(10, 10))
+    bins = np.linspace(-1.5, 1.5, 50)
+    plt.hist(histosW, bins, histtype='stepfilled', stacked=True, label=labelsW, edgecolor='black')
+    plt.legend(frameon=False, loc='upper left')
+    plt.ylabel('Number of Weights')
+    plt.xlabel('Weights')
+    plt.figtext(0.2, 0.38, model._name, wrap=True, horizontalalignment='left', verticalalignment='center')
+
+doWeights(model)

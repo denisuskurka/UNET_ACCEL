@@ -39,7 +39,7 @@ def parse_image_mask(image_path, mask_path, HEIGHT, WIDTH, augment=False):
     
     return image, mask
 
-def augment_image_mask(image, mask, flip_prob=0.5, rotate_max_deg=5, brightness_prob=0.5, brightness_range=(0.7, 1.3)):
+def augment_image_mask(image, mask, flip_prob=0.0, rotate_max_deg=5, brightness_prob=0.5, brightness_range=(0.7, 1.3)):
     """Applies augmentation to both image and mask."""
     
     # Random horizontal flip

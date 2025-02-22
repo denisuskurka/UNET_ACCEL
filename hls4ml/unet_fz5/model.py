@@ -47,7 +47,7 @@ def build_model(HEIGHT, WIDTH):
             kernel_quantizer="quantized_bits(32,8,alpha=1)",
             bias_quantizer="quantized_bits(32,8,alpha=1)",
             kernel_initializer='lecun_uniform',
-            kernel_regularizer=l1(0.0),
+            kernel_regularizer=l1(0.0000),
             use_bias=True,
             name=f'{prefix}_conv1'
         )(x)
@@ -80,9 +80,16 @@ def build_model(HEIGHT, WIDTH):
     #                                Final Output
     # -------------------------------------------------------------------------
     # Produce 1 channel of logits (no sigmoid)
-    outputs = Conv2D(
+    outputs = QConv2D(
         filters=1,
         kernel_size=(1, 1),
+        strides=(1, 1),
+        padding='same',
+        kernel_quantizer="quantized_bits(32,8,alpha=1)",
+        bias_quantizer="quantized_bits(32,8,alpha=1)",
+        kernel_initializer='lecun_uniform',
+        kernel_regularizer=l1(0.0000),
+        use_bias=True,
         activation=None,  # no activation => raw logits
         name='output_conv'
     )(up2_conv)

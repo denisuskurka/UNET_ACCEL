@@ -1,15 +1,7 @@
 #!/usr/bin/env python
 """
-A simple inference script for a QKeras model.
-This script:
-  • Loads one image from the images folder.
-  • Preprocesses it (grayscale, resized to 128×128).
-  • Exports the preprocessed image as 'X_test.npy'.
-  • Loads the quantized model (using a custom object scope to register QKeras layers)
-    with compile=False (to avoid loading the custom loss).
-  • Runs inference to get a baseline response.
-  • Exports the predicted mask as 'Y_baseline.npy'.
-  • Displays the input image and predicted mask using Matplotlib.
+A simple inference script for a QKeras model, enhanced to display negative vs. positive
+logits in a diverging colormap with a colorbar.
 """
 
 import os
@@ -26,19 +18,19 @@ from loss import bce_dice_loss, dice_coefficient
 # Import the needed QKeras layers for custom objects.
 from qkeras import QConv2DBatchnorm, QActivation
 
-# Force TensorFlow to use the CPU only.
+# Force TensorFlow to use the CPU only (optional).
 tf.config.set_visible_devices([], 'GPU')
 print("Running on CPU only.")
 
 # ----------------------------
 # Parameters
 # ----------------------------
-IMAGE_HEIGHT = 128
-IMAGE_WIDTH  = 128
-IMAGES_DIR   = "./data/images"               # folder with your images
-MODEL_PATH   = "quantized_cnn_model_final.h5"    # path to your saved QKeras model
-INPUT_EXPORT = "X_test.npy"                  # filename to export input image
-OUTPUT_EXPORT = "Y_baseline.npy"             # filename to export model prediction
+IMAGE_HEIGHT = 50
+IMAGE_WIDTH  = 50
+IMAGES_DIR   = "./data/images"            
+MODEL_PATH   = "quantized_cnn_model_final_test.h5"    
+INPUT_EXPORT = "X_test.npy"                
+OUTPUT_EXPORT = "Y_baseline.npy"           
 
 # ----------------------------
 # Utility Functions
@@ -49,16 +41,13 @@ def load_and_preprocess_image(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH
     converts it to float32 in [0, 1] range, and resizes it.
     """
     image = tf.io.read_file(image_path)
-    # Decode as PNG with 1 channel (grayscale)
-    image = tf.image.decode_png(image, channels=1)
+    image = tf.image.decode_png(image, channels=1)       # grayscale
     image = tf.image.convert_image_dtype(image, tf.float32)
     image = tf.image.resize(image, [height, width])
     return image
 
 def get_first_image_path(images_dir, valid_exts=('.png', '.jpg', '.jpeg')):
-    """
-    Returns the full path of the first image in images_dir that matches a valid extension.
-    """
+    """Returns the full path of the first valid image file in images_dir."""
     for fname in sorted(os.listdir(images_dir)):
         if fname.lower().endswith(valid_exts):
             return os.path.join(images_dir, fname)
@@ -66,22 +55,39 @@ def get_first_image_path(images_dir, valid_exts=('.png', '.jpg', '.jpeg')):
 
 def show_result(input_image, pred_mask):
     """
-    Displays the input image and predicted mask side-by-side.
+    Displays the input image in grayscale and the predicted mask with a diverging colormap,
+    so negative values appear different from positive values. A colorbar is included to show scale.
     
     Parameters:
       input_image: NumPy array of shape (H, W, 1)
       pred_mask: NumPy array of shape (H, W) or (H, W, 1)
     """
-    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+    # Flatten the extra dimension if present
+    mask_2d = np.squeeze(pred_mask)
     
+    # Determine the range so that negative is distinctly visible from positive
+    abs_max = max(abs(mask_2d.min()), abs(mask_2d.max()))
+
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+
+    # Left: input image in grayscale
     axes[0].imshow(np.squeeze(input_image), cmap='gray')
     axes[0].set_title("Input Image")
     axes[0].axis("off")
-    
-    axes[1].imshow(np.squeeze(pred_mask), cmap='gray')
-    axes[1].set_title("Predicted Mask")
+
+    # Right: predicted mask with a diverging colormap (e.g. 'seismic')
+    im = axes[1].imshow(
+        mask_2d,
+        cmap='seismic',           # or 'bwr', 'RdBu', etc.
+        vmin=-abs_max,
+        vmax=abs_max
+    )
+    axes[1].set_title("Predicted Mask (Logits)")
     axes[1].axis("off")
-    
+
+    # Add a colorbar for the mask
+    fig.colorbar(im, ax=axes[1], fraction=0.046, pad=0.04)
+
     plt.tight_layout()
     plt.show()
 
@@ -89,45 +95,43 @@ def show_result(input_image, pred_mask):
 # Main Function
 # ----------------------------
 def main():
-    # Get one image from the images folder.
     image_path = get_first_image_path(IMAGES_DIR)
     if image_path is None:
         print(f"No image files found in {IMAGES_DIR}.")
         return
     print("Using image:", image_path)
     
-    # Load and preprocess the image.
+    # Load and preprocess the image (H, W, 1)
     image = load_and_preprocess_image(image_path)
-    # Expand dims so that the shape becomes (1, 128, 128, 1)
+    # Shape => (1, H, W, 1) for batch inference
     image_batch = tf.expand_dims(image, axis=0)
     
     # Export the preprocessed input image as X_test.npy.
     np.save(INPUT_EXPORT, image.numpy())
     print(f"Exported preprocessed input image to '{INPUT_EXPORT}' with shape {image.numpy().shape}.")
     
-    # Load the QKeras model using a custom object scope so that QKeras layers are recognized.
-    # Use compile=False to avoid reloading the custom loss.
+    # Load the QKeras model with a custom object scope so QKeras layers are recognized.
+    # compile=False to avoid reloading the custom loss.
     co = {
-        "loss":bce_dice_loss(bce_weight=0.3),
-        "dice_coefficient":dice_coefficient
+        "loss": bce_dice_loss(bce_weight=0.3),
+        "dice_coefficient": dice_coefficient
     }
     _add_supported_quantized_objects(co)
     co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
-    model = tf.keras.models.load_model(MODEL_PATH, custom_objects=co)
+    model = tf.keras.models.load_model(MODEL_PATH, custom_objects=co, compile=False)
     print("Model loaded from:", MODEL_PATH)
     
-    # Run inference.
+    # Run inference
     print("Running inference...")
     pred = model.predict(image_batch)
-    # Remove batch dimension.
-    pred_mask = np.squeeze(pred)
+    pred_mask = np.squeeze(pred)  # (H, W) if batch=1
     print("Prediction shape:", pred_mask.shape)
     
     # Export the predicted mask as Y_baseline.npy.
     np.save(OUTPUT_EXPORT, pred_mask)
     print(f"Exported model prediction to '{OUTPUT_EXPORT}'.")
     
-    # Display the input image and predicted mask.
+    # Show the input image & predicted mask
     show_result(image.numpy(), pred_mask)
 
 if __name__ == "__main__":
