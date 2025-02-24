@@ -20,9 +20,9 @@ import matplotlib.pyplot as plt
 # ----------------------------
 # Parameters
 # ----------------------------
-HEIGHT, WIDTH = 90, 90
+HEIGHT, WIDTH = 128, 128
 BATCH_SIZE = 8
-N_EPOCHS = 300
+N_EPOCHS = 1000
 LEARNING_RATE = 1e-3
 
 IMAGES_DIR = "./data/images"
@@ -32,7 +32,7 @@ MASKS_DIR = "./data/masks"
 # ending by the 10th epoch
 def pruneFunction(layer):
     pruning_params = {
-        'pruning_schedule': sparsity.PolynomialDecay(initial_sparsity=0.0, final_sparsity=0.75, begin_step=0, end_step=2000, frequency=100)
+        'pruning_schedule': sparsity.PolynomialDecay(initial_sparsity=0.0, final_sparsity=0.2, begin_step=0, end_step=2000, frequency=200)
         #"pruning_schedule": sparsity.ConstantSparsity(0.5, begin_step=0, frequency=50)
     }
     if isinstance(layer, tf.keras.layers.Conv2D):
