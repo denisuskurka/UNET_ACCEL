@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 # ----------------------------
 # Parameters
 # ----------------------------
-HEIGHT, WIDTH = 64, 64
+HEIGHT, WIDTH = 90, 90
 BATCH_SIZE = 8
 N_EPOCHS = 300
 LEARNING_RATE = 1e-3
