@@ -30,7 +30,7 @@ os.environ['PATH'] = os.environ['XILINX_VIVADO'] + '/bin:' + os.environ['PATH']
 co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
 
 # Load and strip pruning from the quantized model.
-qmodel = tf.keras.models.load_model('quantized_cnn_model_final.h5', custom_objects=co)
+qmodel = tf.keras.models.load_model('quantized_cnn_model_final_128_20.h5', custom_objects=co)
 qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
