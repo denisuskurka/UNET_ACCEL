@@ -34,7 +34,7 @@ qmodel = tf.keras.models.load_model('quantized_cnn_model_final_128_20.h5', custo
 qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
-hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model', backend='VivadoAccelerator', board='fz5')
+hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model', backend='VivadoAccelerator')
 hls_config_q['Model']['ReuseFactor'] = 4
 hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
 hls_config_q['Flows'] = ['vivadoaccelerator:fifo_depth_optimization']
@@ -50,7 +50,7 @@ cfg_q['KerasModel'] = qmodel
 cfg_q['OutputDir'] = 'quantized_pruned_cnn/'
 cfg_q['Board'] = 'fz5'
 
-hls_model_q = hls4ml.converters.keras_to_hls(cfg_q)
+hls_model_q = hls4ml.converters.keras_to_hls(cfg_q, board='fz5')
 hls_model_q.compile()
 
 # Compare the numerical output of the two models.
