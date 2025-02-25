@@ -38,6 +38,7 @@ hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model',
 hls_config_q['Model']['ReuseFactor'] = 4
 hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
 hls_config_q['Flows'] = ['vivadoaccelerator:fifo_depth_optimization']
+hls_config_q['Board'] = 'fz5'
 #hls_config_q['Part'] = 'xczu5ev-sfvc784-1-i'
 plotting.print_dict(hls_config_q)
 
@@ -50,7 +51,7 @@ cfg_q['KerasModel'] = qmodel
 cfg_q['OutputDir'] = 'quantized_pruned_cnn/'
 cfg_q['Board'] = 'fz5'
 
-hls_model_q = hls4ml.converters.keras_to_hls(cfg_q, board='fz5')
+hls_model_q = hls4ml.converters.keras_to_hls(cfg_q)
 hls_model_q.compile()
 
 # Compare the numerical output of the two models.
