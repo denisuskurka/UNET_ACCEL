@@ -48,7 +48,7 @@ cfg_q['IOType'] = 'io_stream'  # Must set this if using CNNs!
 cfg_q['HLSConfig'] = hls_config_q
 cfg_q['KerasModel'] = qmodel
 cfg_q['OutputDir'] = 'quantized_pruned_cnn/'
-cfg_q['Board'] = 'pynq-z2'
+cfg_q['Board'] = 'fz5'
 
 hls_model_q = hls4ml.converters.keras_to_hls(cfg_q)
 hls_model_q.compile()
