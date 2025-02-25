@@ -38,8 +38,9 @@ hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model',
 hls_config_q['Model']['ReuseFactor'] = 4
 hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
 hls_config_q['Flows'] = ['vivadoaccelerator:fifo_depth_optimization']
+hls_config_q['AcceleratorConfig']['Board'] = 'fz5'
 hls_config_q['Board'] = 'fz5'
-#hls_config_q['Part'] = 'xczu5ev-sfvc784-1-i'
+hls_config_q['Part'] = 'xczu5ev-sfvc784-1-i'
 plotting.print_dict(hls_config_q)
 
 hls4ml.model.optimizer.get_optimizer('vivado:fifo_depth_optimization').configure(profiling_fifo_depth=100_000)
