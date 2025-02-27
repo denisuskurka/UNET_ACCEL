@@ -82,3 +82,11 @@ python inference.py
 ---
 This project is actively being improved. Contributions and feedback are welcome!
 
+## 4. Projects
+Lastly the folder 'quantized_pruned_cnn' contains the whole HLS and Vivado project.
+
+The quantized_cnn_model_final_128_20.h5 file are the weight for the NN.
+
+The xilinx_com_hls_myproject_axi_1_0.zip contains the IP.
+
+And lastly the unet128.zip is the HW project for FZ5.
