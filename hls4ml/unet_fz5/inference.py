@@ -36,11 +36,23 @@ def load_and_preprocess_image(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH
     image = tf.image.resize(image, [height, width])
     return image
 
-def get_first_image_path(images_dir, valid_exts=('.png', '.jpg', '.jpeg')):
-    """Returns the full path of the first valid image file in images_dir."""
-    for fname in sorted(os.listdir(images_dir)):
-        if fname.lower().endswith(valid_exts):
-            return os.path.join(images_dir, fname)
+def get_image_x_path(images_dir, x=1, valid_exts=('.png', '.jpg', '.jpeg')):
+    """Returns the full path of the x-th valid image file in images_dir.
+    
+    Args:
+        images_dir (str): The directory to search for images.
+        x (int): The index (1-based) of the image to return.
+        valid_exts (tuple): Tuple of valid file extensions.
+    
+    Returns:
+        str or None: The full path of the x-th valid image, or None if not found.
+    """
+    images = sorted(
+        [fname for fname in os.listdir(images_dir) if fname.lower().endswith(valid_exts)]
+    )
+    
+    if 1 <= x <= len(images):
+        return os.path.join(images_dir, images[x - 1])
     return None
 
 def show_result(input_image, pred_mask):
@@ -71,7 +83,7 @@ def show_result(input_image, pred_mask):
     plt.show()
 
 def main():
-    image_path = get_first_image_path(IMAGES_DIR)
+    image_path = get_image_x_path(IMAGES_DIR, 0)
     if image_path is None:
         print(f"No image files found in {IMAGES_DIR}.")
         return
