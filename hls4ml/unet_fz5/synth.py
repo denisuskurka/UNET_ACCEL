@@ -22,6 +22,13 @@ from dataset import get_image_mask_paths, create_dataset
 tf.config.set_visible_devices([], 'GPU')
 print("Running on CPU only.")
 
+# Load image
+image_path = get_image_x_path("./data/images", 1)
+if image_path is None:
+    print(f"No image files found!.")
+image_hdr = load_and_preprocess_image(image_path)
+image = np.ascontiguousarray(image_hdr)
+
 # Setup custom objects for loading the model
 co = {
     "loss":bce_dice_loss(bce_weight=0.3),
@@ -66,12 +73,8 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # ---------------------------
 hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True)
 
-image_path = get_image_x_path("./data/images", 0)
-image = load_and_preprocess_image(image_path)
-image = np.ascontiguousarray(image)
 pred = hls_model_q.predict(image)
-pred_mask = np.squeeze(pred)
-show_result(image.numpy(), pred_mask)
+pred.tofile("Y_ver.bin")
 
 #!sed -n '30,45p' quantized_pruned_cnn/myproject_vivado_accelerator/project_1.runs/impl_1/design_1_wrapper_utilization_placed.rpt
 

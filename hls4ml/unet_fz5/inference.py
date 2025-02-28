@@ -83,7 +83,7 @@ def show_result(input_image, pred_mask):
     plt.show()
 
 def main():
-    image_path = get_image_x_path(IMAGES_DIR, 0)
+    image_path = get_image_x_path(IMAGES_DIR, 1)
     if image_path is None:
         print(f"No image files found in {IMAGES_DIR}.")
         return
