@@ -49,8 +49,8 @@ hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
 #hls_config_q['Model']['Strategy'] = 'Resource'
 hls_config_q['Part'] = 'xczu5ev-sfvc784-1-i'
 #hls_config_q['Strategy'] = 'Resource'
-#hls_config_q['Flows'] = ['vivado:fifo_depth_optimization']
-#hls4ml.model.optimizer.get_optimizer('vivado:fifo_depth_optimization').configure(profiling_fifo_depth=100_000)
+hls_config_q['Flows'] = ['vivado:fifo_depth_optimization']
+hls4ml.model.optimizer.get_optimizer('vivado:fifo_depth_optimization').configure(profiling_fifo_depth=100_000)
 plotting.print_dict(hls_config_q)
 
 cfg_q = hls4ml.converters.create_config(backend='Vivado')
