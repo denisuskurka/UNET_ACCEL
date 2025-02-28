@@ -16,5 +16,17 @@ def main():
     plt.colorbar()
     plt.show()
 
+    # 1) Load the raw binary data as float32
+    data = np.fromfile("Y_ver.bin", dtype=np.float32)
+    
+    # 2) Reshape to 128×128 (adjust if your image dimensions differ)
+    data = data.reshape((128, 128))
+    
+    # 3) Show the image with a grayscale colormap
+    plt.imshow(data, cmap='gray')
+    plt.title("Y_ver.bin Image")
+    plt.colorbar()
+    plt.show()
+
 if __name__ == "__main__":
     main()
