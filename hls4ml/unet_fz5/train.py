@@ -28,6 +28,8 @@ LEARNING_RATE = 1e-3
 IMAGES_DIR = "./data/images"
 MASKS_DIR = "./data/masks"
 
+PRUNING = False
+
 # Prune all convolutional and dense layers gradually from 0 to 50% sparsity every 2 epochs,
 # ending by the 10th epoch
 def pruneFunction(layer):
@@ -76,7 +78,8 @@ plt.show()
 # Build & Compile Model
 # ----------------------------
 model = build_model(HEIGHT, WIDTH)
-model = tf.keras.models.clone_model(model, clone_function=pruneFunction)
+if PRUNING:
+    model = tf.keras.models.clone_model(model, clone_function=pruneFunction)
 
 loss_fn = bce_dice_loss(bce_weight=0.3)
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
@@ -111,8 +114,11 @@ reduce_lr_cb = tf.keras.callbacks.ReduceLROnPlateau(
     verbose=1
 )
 
-callbacks = [checkpoint_cb, earlystop_cb, pruning_callbacks.UpdatePruningStep()]
-#callbacks = [checkpoint_cb, earlystop_cb, reduce_lr_cb]
+callbacks = []
+if PRUNING: 
+    callbacks = [checkpoint_cb, earlystop_cb, pruning_callbacks.UpdatePruningStep()]
+else:
+    callbacks = [checkpoint_cb, earlystop_cb, reduce_lr_cb]
 
 # ----------------------------
 # Training
