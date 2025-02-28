@@ -13,6 +13,8 @@ from pathlib import Path
 import pprint
 import plotting
 from loss import bce_dice_loss, dice_coefficient
+from inference import load_and_preprocess_image, show_result
+
 
 from dataset import get_image_mask_paths, create_dataset
 
@@ -55,6 +57,8 @@ cfg_q['Part'] = 'xczu5ev-sfvc784-1-i'
 hls_model_q = hls4ml.converters.keras_to_hls(cfg_q)
 hls_model_q.compile()
 
+hls_model_q.predict()
+
 # Compare the numerical output of the two models.
 numerical(model=qmodel, hls_model=hls_model_q)
 hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_file="model.png")
@@ -63,6 +67,12 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # Synthesize!
 # ---------------------------
 hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True)
+
+image = load_and_preprocess_image("./data/images")
+image_batch = tf.expand_dims(image, axis=0)
+pred = hls_model_q.predict(image_batch)
+pred_mask = np.squeeze(pred)
+show_result(image.numpy(), pred_mask)
 
 #!sed -n '30,45p' quantized_pruned_cnn/myproject_vivado_accelerator/project_1.runs/impl_1/design_1_wrapper_utilization_placed.rpt
 
