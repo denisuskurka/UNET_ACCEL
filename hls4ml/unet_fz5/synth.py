@@ -13,7 +13,7 @@ from pathlib import Path
 import pprint
 import plotting
 from loss import bce_dice_loss, dice_coefficient
-from inference import load_and_preprocess_image, show_result
+from inference import load_and_preprocess_image, show_result, get_image_x_path
 
 
 from dataset import get_image_mask_paths, create_dataset
@@ -68,9 +68,10 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # ---------------------------
 hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True)
 
-image = load_and_preprocess_image("./data/images")
-image_batch = tf.expand_dims(image, axis=0)
-pred = hls_model_q.predict(image_batch)
+image_path = get_image_x_path("./data/images", 0)
+image = load_and_preprocess_image(image_path)
+image = np.ascontiguousarray(image)
+pred = hls_model_q.predict(image)
 pred_mask = np.squeeze(pred)
 show_result(image.numpy(), pred_mask)
 
