@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Transfer input files to the remote machine
-scp -P 8112 ./X_test.bin ./dma_test.sh petalinux@85.70.252.121:/home/petalinux/
+scp -P 8112 ./X_test.bin petalinux@85.70.252.121:/home/petalinux/
 
 # Execute commands on the remote machine
 ssh -t petalinux@85.70.252.121 << 'EOF'
