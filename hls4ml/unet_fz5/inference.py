@@ -26,6 +26,13 @@ INPUT_EXPORT  = "X_test.npy"     # still save as .npy
 RAW_EXPORT    = "X_test.bin"     # new: raw binary file
 OUTPUT_EXPORT = "Y_baseline.npy"
 
+def encode(xi):
+    return np.int32(round(xi * 2**24)) # note 2**10 = 2**(A-B)
+def decode(yi):
+    return yi * 2**-24
+encode_v = np.vectorize(encode) # to apply them element-wise
+decode_v = np.vectorize(decode)
+
 def load_and_preprocess_image(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH):
     """
     Loads an image file, decodes it as a grayscale image,
@@ -102,18 +109,17 @@ def main():
     print(f"Exported preprocessed input image to '{INPUT_EXPORT}' with shape {image.shape}.")
 
     # ----------------------------------------------------------------------
-    # 2. SAVE AS RAW BINARY (no header), FLOAT32
+    # 2. SAVE AS RAW BINARY (no header), FIXED32,8
     #    This is the file you can dd into memory as raw bytes.
     # ----------------------------------------------------------------------
     # Convert to float32 array explicitly (should already be float32,
     # but let's be sure).
     image_raw = image.numpy().astype(np.float32)  # shape (H, W, 1)
+    # apply your vectorized encode
+    image_fixed = encode_v(image_raw)  # shape (H, W, 1), int32
+    # write out the integer data as raw bytes
+    image_fixed.tofile(RAW_EXPORT)
 
-    # Write just the raw bytes:
-    #   number_of_pixels = H * W * 1
-    #   total_bytes = number_of_pixels * 4
-    # The file will be 128*128*4 = 65536 bytes for single-channel float32.
-    image_raw.tofile(RAW_EXPORT)
     print(f"Also exported raw bytes to '{RAW_EXPORT}' "
           f"(size: {image_raw.size} floats => {image_raw.size * 4} bytes).")
 
