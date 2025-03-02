@@ -28,13 +28,13 @@ LEARNING_RATE = 1e-3
 IMAGES_DIR = "./data/images"
 MASKS_DIR = "./data/masks"
 
-PRUNING = False
+PRUNING = True
 
 # Prune all convolutional and dense layers gradually from 0 to 50% sparsity every 2 epochs,
 # ending by the 10th epoch
 def pruneFunction(layer):
     pruning_params = {
-        'pruning_schedule': sparsity.PolynomialDecay(initial_sparsity=0.0, final_sparsity=0.2, begin_step=0, end_step=2000, frequency=200)
+        'pruning_schedule': sparsity.PolynomialDecay(initial_sparsity=0.0, final_sparsity=0.5, begin_step=0, end_step=2000, frequency=50)
         #"pruning_schedule": sparsity.ConstantSparsity(0.5, begin_step=0, frequency=50)
     }
     if isinstance(layer, tf.keras.layers.Conv2D):
@@ -102,7 +102,7 @@ checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
 
 earlystop_cb = tf.keras.callbacks.EarlyStopping(
     monitor="val_loss",
-    patience=1000,
+    patience=100,
     restore_best_weights=True,
     verbose=1
 )
@@ -116,7 +116,7 @@ reduce_lr_cb = tf.keras.callbacks.ReduceLROnPlateau(
 
 callbacks = []
 if PRUNING: 
-    callbacks = [checkpoint_cb, earlystop_cb, pruning_callbacks.UpdatePruningStep()]
+    callbacks = [checkpoint_cb, earlystop_cb, reduce_lr_cb, pruning_callbacks.UpdatePruningStep()]
 else:
     callbacks = [checkpoint_cb, earlystop_cb, reduce_lr_cb]
 
