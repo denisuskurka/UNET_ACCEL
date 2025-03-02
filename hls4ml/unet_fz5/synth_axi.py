@@ -69,7 +69,7 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # ---------------------------
 # Synthesize!
 # ---------------------------
-hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=True)
+hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
 
 pred = hls_model_q.predict(image)
 pred.tofile("Y_ver.bin")
