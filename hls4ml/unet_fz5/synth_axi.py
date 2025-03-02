@@ -42,7 +42,7 @@ qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
 hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model', backend='VivadoAccelerator')
-hls_config_q['Model']['ReuseFactor'] = 4
+hls_config_q['Model']['ReuseFactor'] = 8
 hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
 hls_config_q['Flows'] = ['vivadoaccelerator:fifo_depth_optimization']
 hls_config_q['Board'] = 'fz5'
