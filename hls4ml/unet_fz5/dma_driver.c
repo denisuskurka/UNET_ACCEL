@@ -44,8 +44,8 @@
 // Addresses for your design
 // ---------------------------------------------------------------------
 #define AXI_DMA_BASE    0xA0000000UL  // DMA register base
-#define DDR_SRC_ADDR    0x00000000UL  // input buffer
-#define DDR_DST_ADDR    0x00200000UL  // output buffer
+#define DDR_SRC_ADDR    0x0e000000UL  // input buffer
+#define DDR_DST_ADDR    0x0f000000UL  // output buffer
 #define TRANSFER_SIZE   65536         // 64KB
 
 // Helper to read/write registers
