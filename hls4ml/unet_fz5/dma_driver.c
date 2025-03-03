@@ -168,7 +168,7 @@ int main(void)
     uintptr_t dma_virt_base = (uintptr_t)dma_map + (AXI_DMA_BASE - dma_base_aligned);
 
     // 4) Copy X_test.bin into DDR_SRC_ADDR
-    f_in = fopen("X_test.bin", "rb");
+    f_in = fopen("X_test1.bin", "rb");
     if(!f_in) {
         perror("fopen(X_test.bin)");
         goto cleanup;
@@ -205,21 +205,21 @@ int main(void)
            (unsigned long)DDR_SRC_ADDR,
            (unsigned long)DDR_DST_ADDR);
 
-    write_reg(dma_regs, MM2S_SA, (uint32_t)DDR_SRC_ADDR);
     write_reg(dma_regs, S2MM_DA, (uint32_t)DDR_DST_ADDR);
+    write_reg(dma_regs, MM2S_SA, (uint32_t)DDR_SRC_ADDR);
 
     // 8) Run
     printf("Running DMA channels...\n");
-    write_reg(dma_regs, MM2S_DMACR, RUN_DMA);
     write_reg(dma_regs, S2MM_DMACR, RUN_DMA);
+    write_reg(dma_regs, MM2S_DMACR, RUN_DMA);
 
     print_mm2s_status(dma_regs);
     print_s2mm_status(dma_regs);
 
     // 9) Transfer length
     printf("Setting transfer size = %d bytes\n", TRANSFER_SIZE);
-    write_reg(dma_regs, MM2S_LENGTH, TRANSFER_SIZE);
     write_reg(dma_regs, S2MM_LENGTH, TRANSFER_SIZE);
+    write_reg(dma_regs, MM2S_LENGTH, TRANSFER_SIZE);
 
     // 10) Wait for IDLE
     printf("Waiting for MM2S Idle...\n");

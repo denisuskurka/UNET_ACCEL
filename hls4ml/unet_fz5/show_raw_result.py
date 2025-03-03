@@ -18,6 +18,7 @@ def main():
     data_float = decode_v(raw_data)  # shape is still 1D
 
     # 3) Reshape to 128×128 (or your actual image shape).
+    data_float = np.fromfile("Y_test.bin", dtype=np.float32)
     data_float = data_float.reshape((128, 128))
 
     # 4) Display
