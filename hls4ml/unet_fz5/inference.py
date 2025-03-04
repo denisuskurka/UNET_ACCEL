@@ -99,6 +99,8 @@ def main():
 
     # Load and preprocess the image => shape (H, W, 1), float32
     image = load_and_preprocess_image(image_path)
+    image1 = np.ascontiguousarray(image)
+    image1.tofile("X_test1.bin")
     # Expand batch dimension => (1, H, W, 1)
     image_batch = tf.expand_dims(image, axis=0)
 
@@ -119,6 +121,7 @@ def main():
     image_fixed = encode_v(image_raw)  # shape (H, W, 1), int32
     # write out the integer data as raw bytes
     image_fixed.tofile(RAW_EXPORT)
+    #image_raw.tofile(RAW_EXPORT)
 
     print(f"Also exported raw bytes to '{RAW_EXPORT}' "
           f"(size: {image_raw.size} floats => {image_raw.size * 4} bytes).")
