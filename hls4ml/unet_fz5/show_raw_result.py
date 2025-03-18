@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 def main():
     # 1) Load file as float32 and reshape to 128×128
-    data_float = np.fromfile("Y_test.bin", dtype=np.float32)
+    data_float = np.fromfile("Y_ver.bin", dtype=np.float32)
     data_float = data_float.reshape((128, 128))
 
     # 2) Threshold at zero -> produce a binary mask
