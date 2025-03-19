@@ -1,0 +1,838 @@
+(hls4ml) komaro@pasokonus:~/デスクトップ/Cermak/finn/notebooks/FZ5-UNET/hls4ml/unet_z2$ python train.py
+2025-03-18 18:53:39.214504: E tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:9342] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2025-03-18 18:53:39.214531: E tensorflow/compiler/xla/stream_executor/cuda/cuda_fft.cc:609] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-03-18 18:53:39.214539: E tensorflow/compiler/xla/stream_executor/cuda/cuda_blas.cc:1518] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-03-18 18:53:39.218799: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE4.1 SSE4.2 AVX AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Found 93 images and 93 masks. Using 93 pairs.
+2025-03-18 18:53:40.494260: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.516997: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.517168: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.518527: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.518684: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.518825: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.569532: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.569698: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.569842: I tensorflow/compiler/xla/stream_executor/cuda/cuda_gpu_executor.cc:894] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero. See more at https://github.com/torvalds/linux/blob/v6.0/Documentation/ABI/testing/sysfs-bus-pci#L344-L355
+2025-03-18 18:53:40.569949: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1886] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 6325 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1070, pci bus id: 0000:09:00.0, compute capability: 6.1
+/home/komaro/anaconda3/envs/hls4ml/lib/python3.10/site-packages/keras/src/initializers/initializers.py:120: UserWarning: The initializer LecunUniform is unseeded and being called multiple times, which will return identical values each time (even if the initializer is unseeded). Please update your code to provide a seed to the initializer, or avoid using the same initializer instance more than once.
+  warnings.warn(
+Model: "unet_light"
+__________________________________________________________________________________________________
+ Layer (type)                Output Shape                 Param #   Connected to                  
+==================================================================================================
+ cnn_input (InputLayer)      [(None, 128, 128, 1)]        0         []                            
+                                                                                                  
+ down1_conv1 (QConv2DBatchn  (None, 128, 128, 64)         897       ['cnn_input[0][0]']           
+ orm)                                                                                             
+                                                                                                  
+ down1_act1 (QActivation)    (None, 128, 128, 64)         0         ['down1_conv1[0][0]']         
+                                                                                                  
+ down1_conv2 (QConv2DBatchn  (None, 128, 128, 64)         37185     ['down1_act1[0][0]']          
+ orm)                                                                                             
+                                                                                                  
+ down1_act2 (QActivation)    (None, 128, 128, 64)         0         ['down1_conv2[0][0]']         
+                                                                                                  
+ pool1 (MaxPooling2D)        (None, 64, 64, 64)           0         ['down1_act2[0][0]']          
+                                                                                                  
+ down2_conv1 (QConv2DBatchn  (None, 64, 64, 128)          74369     ['pool1[0][0]']               
+ orm)                                                                                             
+                                                                                                  
+ down2_act1 (QActivation)    (None, 64, 64, 128)          0         ['down2_conv1[0][0]']         
+                                                                                                  
+ down2_conv2 (QConv2DBatchn  (None, 64, 64, 128)          148097    ['down2_act1[0][0]']          
+ orm)                                                                                             
+                                                                                                  
+ down2_act2 (QActivation)    (None, 64, 64, 128)          0         ['down2_conv2[0][0]']         
+                                                                                                  
+ pool2 (MaxPooling2D)        (None, 32, 32, 128)          0         ['down2_act2[0][0]']          
+                                                                                                  
+ down3_conv1 (QConv2DBatchn  (None, 32, 32, 256)          296193    ['pool2[0][0]']               
+ orm)                                                                                             
+                                                                                                  
+ down3_act1 (QActivation)    (None, 32, 32, 256)          0         ['down3_conv1[0][0]']         
+                                                                                                  
+ down3_conv2 (QConv2DBatchn  (None, 32, 32, 256)          591105    ['down3_act1[0][0]']          
+ orm)                                                                                             
+                                                                                                  
+ down3_act2 (QActivation)    (None, 32, 32, 256)          0         ['down3_conv2[0][0]']         
+                                                                                                  
+ pool3 (MaxPooling2D)        (None, 16, 16, 256)          0         ['down3_act2[0][0]']          
+                                                                                                  
+ down4_conv1 (QConv2DBatchn  (None, 16, 16, 512)          1182209   ['pool3[0][0]']               
+ orm)                                                                                             
+                                                                                                  
+ down4_act1 (QActivation)    (None, 16, 16, 512)          0         ['down4_conv1[0][0]']         
+                                                                                                  
+ down4_conv2 (QConv2DBatchn  (None, 16, 16, 512)          2361857   ['down4_act1[0][0]']          
+ orm)                                                                                             
+                                                                                                  
+ down4_act2 (QActivation)    (None, 16, 16, 512)          0         ['down4_conv2[0][0]']         
+                                                                                                  
+ pool4 (MaxPooling2D)        (None, 8, 8, 512)            0         ['down4_act2[0][0]']          
+                                                                                                  
+ bottleneck_conv1 (QConv2DB  (None, 8, 8, 1024)           4723713   ['pool4[0][0]']               
+ atchnorm)                                                                                        
+                                                                                                  
+ bottleneck_act1 (QActivati  (None, 8, 8, 1024)           0         ['bottleneck_conv1[0][0]']    
+ on)                                                                                              
+                                                                                                  
+ bottleneck_conv2 (QConv2DB  (None, 8, 8, 1024)           9442305   ['bottleneck_act1[0][0]']     
+ atchnorm)                                                                                        
+                                                                                                  
+ bottleneck_act2 (QActivati  (None, 8, 8, 1024)           0         ['bottleneck_conv2[0][0]']    
+ on)                                                                                              
+                                                                                                  
+ up4 (UpSampling2D)          (None, 16, 16, 1024)         0         ['bottleneck_act2[0][0]']     
+                                                                                                  
+ concat4 (Concatenate)       (None, 16, 16, 1536)         0         ['up4[0][0]',                 
+                                                                     'down4_act2[0][0]']          
+                                                                                                  
+ up4_conv1 (QConv2DBatchnor  (None, 16, 16, 512)          7080449   ['concat4[0][0]']             
+ m)                                                                                               
+                                                                                                  
+ up4_act1 (QActivation)      (None, 16, 16, 512)          0         ['up4_conv1[0][0]']           
+                                                                                                  
+ up4_conv2 (QConv2DBatchnor  (None, 16, 16, 512)          2361857   ['up4_act1[0][0]']            
+ m)                                                                                               
+                                                                                                  
+ up4_act2 (QActivation)      (None, 16, 16, 512)          0         ['up4_conv2[0][0]']           
+                                                                                                  
+ up3 (UpSampling2D)          (None, 32, 32, 512)          0         ['up4_act2[0][0]']            
+                                                                                                  
+ concat3 (Concatenate)       (None, 32, 32, 768)          0         ['up3[0][0]',                 
+                                                                     'down3_act2[0][0]']          
+                                                                                                  
+ up3_conv1 (QConv2DBatchnor  (None, 32, 32, 256)          1770753   ['concat3[0][0]']             
+ m)                                                                                               
+                                                                                                  
+ up3_act1 (QActivation)      (None, 32, 32, 256)          0         ['up3_conv1[0][0]']           
+                                                                                                  
+ up3_conv2 (QConv2DBatchnor  (None, 32, 32, 256)          591105    ['up3_act1[0][0]']            
+ m)                                                                                               
+                                                                                                  
+ up3_act2 (QActivation)      (None, 32, 32, 256)          0         ['up3_conv2[0][0]']           
+                                                                                                  
+ up2 (UpSampling2D)          (None, 64, 64, 256)          0         ['up3_act2[0][0]']            
+                                                                                                  
+ concat2 (Concatenate)       (None, 64, 64, 384)          0         ['up2[0][0]',                 
+                                                                     'down2_act2[0][0]']          
+                                                                                                  
+ up2_conv1 (QConv2DBatchnor  (None, 64, 64, 128)          443009    ['concat2[0][0]']             
+ m)                                                                                               
+                                                                                                  
+ up2_act1 (QActivation)      (None, 64, 64, 128)          0         ['up2_conv1[0][0]']           
+                                                                                                  
+ up2_conv2 (QConv2DBatchnor  (None, 64, 64, 128)          148097    ['up2_act1[0][0]']            
+ m)                                                                                               
+                                                                                                  
+ up2_act2 (QActivation)      (None, 64, 64, 128)          0         ['up2_conv2[0][0]']           
+                                                                                                  
+ up1 (UpSampling2D)          (None, 128, 128, 128)        0         ['up2_act2[0][0]']            
+                                                                                                  
+ concat1 (Concatenate)       (None, 128, 128, 192)        0         ['up1[0][0]',                 
+                                                                     'down1_act2[0][0]']          
+                                                                                                  
+ up1_conv1 (QConv2DBatchnor  (None, 128, 128, 64)         110913    ['concat1[0][0]']             
+ m)                                                                                               
+                                                                                                  
+ up1_act1 (QActivation)      (None, 128, 128, 64)         0         ['up1_conv1[0][0]']           
+                                                                                                  
+ up1_conv2 (QConv2DBatchnor  (None, 128, 128, 64)         37185     ['up1_act1[0][0]']            
+ m)                                                                                               
+                                                                                                  
+ up1_act2 (QActivation)      (None, 128, 128, 64)         0         ['up1_conv2[0][0]']           
+                                                                                                  
+ output_conv (Conv2D)        (None, 128, 128, 1)          65        ['up1_act2[0][0]']            
+                                                                                                  
+==================================================================================================
+Total params: 31401363 (119.79 MB)
+Trainable params: 31389569 (119.74 MB)
+Non-trainable params: 11794 (46.14 KB)
+__________________________________________________________________________________________________
+Starting training...
+Epoch 1/1000
+/home/komaro/anaconda3/envs/hls4ml/lib/python3.10/site-packages/keras/src/backend.py:5820: UserWarning: "`binary_crossentropy` received `from_logits=True`, but the `output` argument was produced by a Sigmoid activation and thus does not represent logits. Was this intended?
+  output, from_logits = _get_logits(
+2025-03-18 18:53:48.433778: E tensorflow/core/grappler/optimizers/meta_optimizer.cc:961] layout failed: INVALID_ARGUMENT: Size of values 0 does not match size of permutation 4 @ fanin shape ingradient_tape/unet_light/up1_act2/SelectV2-2-TransposeNHWCToNCHW-LayoutOptimizer
+2025-03-18 18:53:49.288422: I tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:442] Loaded cuDNN version 8907
+2025-03-18 18:53:50.719394: W tensorflow/tsl/framework/bfc_allocator.cc:296] Allocator (GPU_0_bfc) ran out of memory trying to allocate 6.45GiB with freed_by_count=0. The caller indicates that this is not a failure, but this may mean that there could be performance gains if more memory were available.
+2025-03-18 18:53:50.948429: W tensorflow/tsl/framework/bfc_allocator.cc:296] Allocator (GPU_0_bfc) ran out of memory trying to allocate 6.25GiB with freed_by_count=0. The caller indicates that this is not a failure, but this may mean that there could be performance gains if more memory were available.
+2025-03-18 18:53:51.044526: W tensorflow/tsl/framework/bfc_allocator.cc:296] Allocator (GPU_0_bfc) ran out of memory trying to allocate 6.35GiB with freed_by_count=0. The caller indicates that this is not a failure, but this may mean that there could be performance gains if more memory were available.
+2025-03-18 18:53:51.314690: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x7895ac203070 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+2025-03-18 18:53:51.314709: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): NVIDIA GeForce GTX 1070, Compute Capability 6.1
+2025-03-18 18:53:51.317275: I tensorflow/compiler/mlir/tensorflow/utils/dump_mlir_util.cc:269] disabling MLIR crash reproducer, set env var `MLIR_CRASH_REPRODUCER_DIRECTORY` to enable.
+2025-03-18 18:53:51.372943: I ./tensorflow/compiler/jit/device_compiler.h:186] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+24/25 [===========================>..] - ETA: 0s - loss: 229.1323 - accuracy: 0.93992025-03-18 18:54:00.160791: W tensorflow/tsl/framework/bfc_allocator.cc:296] Allocator (GPU_0_bfc) ran out of memory trying to allocate 6.44GiB with freed_by_count=0. The caller indicates that this is not a failure, but this may mean that there could be performance gains if more memory were available.
+2025-03-18 18:54:00.314134: W tensorflow/tsl/framework/bfc_allocator.cc:296] Allocator (GPU_0_bfc) ran out of memory trying to allocate 6.21GiB with freed_by_count=0. The caller indicates that this is not a failure, but this may mean that there could be performance gains if more memory were available.
+2025-03-18 18:54:00.388931: W tensorflow/tsl/framework/bfc_allocator.cc:296] Allocator (GPU_0_bfc) ran out of memory trying to allocate 6.25GiB with freed_by_count=0. The caller indicates that this is not a failure, but this may mean that there could be performance gains if more memory were available.
+25/25 [==============================] - ETA: 0s - loss: 226.6521 - accuracy: 0.93962025-03-18 18:54:02.841900: W tensorflow/tsl/framework/bfc_allocator.cc:296] Allocator (GPU_0_bfc) ran out of memory trying to allocate 6.43GiB with freed_by_count=0. The caller indicates that this is not a failure, but this may mean that there could be performance gains if more memory were available.
+2025-03-18 18:54:03.028576: W tensorflow/tsl/framework/bfc_allocator.cc:296] Allocator (GPU_0_bfc) ran out of memory trying to allocate 6.16GiB with freed_by_count=0. The caller indicates that this is not a failure, but this may mean that there could be performance gains if more memory were available.
+25/25 [==============================] - 20s 339ms/step - loss: 226.6521 - accuracy: 0.9396 - val_loss: 134.3566 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 2/1000
+25/25 [==============================] - 5s 219ms/step - loss: 95.8913 - accuracy: 0.9518 - val_loss: 72.0255 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 3/1000
+25/25 [==============================] - 5s 220ms/step - loss: 61.6349 - accuracy: 0.9518 - val_loss: 56.5103 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 4/1000
+25/25 [==============================] - 5s 220ms/step - loss: 53.1616 - accuracy: 0.9518 - val_loss: 54.6944 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 5/1000
+25/25 [==============================] - 5s 219ms/step - loss: 52.4418 - accuracy: 0.9518 - val_loss: 52.1664 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 6/1000
+25/25 [==============================] - 5s 219ms/step - loss: 58.0253 - accuracy: 0.9517 - val_loss: 54.3748 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 7/1000
+25/25 [==============================] - 5s 220ms/step - loss: 52.1912 - accuracy: 0.9516 - val_loss: 50.8412 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 8/1000
+25/25 [==============================] - 5s 219ms/step - loss: 51.3280 - accuracy: 0.9518 - val_loss: 55.2103 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 9/1000
+25/25 [==============================] - 5s 220ms/step - loss: 50.3698 - accuracy: 0.9518 - val_loss: 51.1640 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 10/1000
+25/25 [==============================] - 5s 220ms/step - loss: 47.4956 - accuracy: 0.9518 - val_loss: 46.0481 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 11/1000
+25/25 [==============================] - 5s 219ms/step - loss: 43.7433 - accuracy: 0.9518 - val_loss: 44.3905 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 12/1000
+25/25 [==============================] - 5s 220ms/step - loss: 45.8455 - accuracy: 0.9518 - val_loss: 46.6326 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 13/1000
+25/25 [==============================] - 5s 220ms/step - loss: 46.1328 - accuracy: 0.9517 - val_loss: 57.0242 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 14/1000
+25/25 [==============================] - ETA: 0s - loss: 52.2898 - accuracy: 0.9515
+Epoch 14: ReduceLROnPlateau reducing learning rate to 0.05000000074505806.
+25/25 [==============================] - 5s 219ms/step - loss: 52.2898 - accuracy: 0.9515 - val_loss: 51.5406 - val_accuracy: 0.9454 - lr: 0.1000
+Epoch 15/1000
+25/25 [==============================] - 5s 220ms/step - loss: 35.1960 - accuracy: 0.9518 - val_loss: 38.7526 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 16/1000
+25/25 [==============================] - 5s 219ms/step - loss: 34.2448 - accuracy: 0.9502 - val_loss: 29.8074 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 17/1000
+25/25 [==============================] - 5s 220ms/step - loss: 27.8083 - accuracy: 0.9518 - val_loss: 33.2409 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 18/1000
+25/25 [==============================] - 5s 219ms/step - loss: 31.8736 - accuracy: 0.9518 - val_loss: 33.9216 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 19/1000
+25/25 [==============================] - 5s 219ms/step - loss: 29.6126 - accuracy: 0.9518 - val_loss: 27.4757 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 20/1000
+25/25 [==============================] - 5s 219ms/step - loss: 26.2268 - accuracy: 0.9518 - val_loss: 25.1505 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 21/1000
+25/25 [==============================] - 5s 220ms/step - loss: 24.2824 - accuracy: 0.9518 - val_loss: 24.3272 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 22/1000
+25/25 [==============================] - 5s 219ms/step - loss: 23.8480 - accuracy: 0.9518 - val_loss: 28.9916 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 23/1000
+25/25 [==============================] - 5s 219ms/step - loss: 27.6141 - accuracy: 0.9518 - val_loss: 27.4480 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 24/1000
+25/25 [==============================] - ETA: 0s - loss: 25.7385 - accuracy: 0.9518
+Epoch 24: ReduceLROnPlateau reducing learning rate to 0.02500000037252903.
+25/25 [==============================] - 5s 220ms/step - loss: 25.7385 - accuracy: 0.9518 - val_loss: 24.9488 - val_accuracy: 0.9454 - lr: 0.0500
+Epoch 25/1000
+25/25 [==============================] - 5s 219ms/step - loss: 16.7858 - accuracy: 0.9518 - val_loss: 17.2744 - val_accuracy: 0.9454 - lr: 0.0250
+Epoch 26/1000
+25/25 [==============================] - 5s 219ms/step - loss: 15.8864 - accuracy: 0.9518 - val_loss: 15.4354 - val_accuracy: 0.9454 - lr: 0.0250
+Epoch 27/1000
+25/25 [==============================] - 5s 219ms/step - loss: 16.0724 - accuracy: 0.9518 - val_loss: 15.6333 - val_accuracy: 0.9454 - lr: 0.0250
+Epoch 28/1000
+25/25 [==============================] - 5s 220ms/step - loss: 14.0989 - accuracy: 0.9518 - val_loss: 13.7905 - val_accuracy: 0.9454 - lr: 0.0250
+Epoch 29/1000
+25/25 [==============================] - 5s 219ms/step - loss: 13.3149 - accuracy: 0.9518 - val_loss: 15.4015 - val_accuracy: 0.9454 - lr: 0.0250
+Epoch 30/1000
+25/25 [==============================] - 5s 220ms/step - loss: 16.2833 - accuracy: 0.9518 - val_loss: 17.0039 - val_accuracy: 0.9454 - lr: 0.0250
+Epoch 31/1000
+25/25 [==============================] - ETA: 0s - loss: 16.2687 - accuracy: 0.9518
+Epoch 31: ReduceLROnPlateau reducing learning rate to 0.012500000186264515.
+25/25 [==============================] - 5s 219ms/step - loss: 16.2687 - accuracy: 0.9518 - val_loss: 17.1565 - val_accuracy: 0.9454 - lr: 0.0250
+Epoch 32/1000
+25/25 [==============================] - 5s 219ms/step - loss: 11.8704 - accuracy: 0.9518 - val_loss: 10.0135 - val_accuracy: 0.9454 - lr: 0.0125
+Epoch 33/1000
+25/25 [==============================] - 5s 219ms/step - loss: 8.9422 - accuracy: 0.9518 - val_loss: 9.2986 - val_accuracy: 0.9454 - lr: 0.0125
+Epoch 34/1000
+25/25 [==============================] - 5s 219ms/step - loss: 9.3173 - accuracy: 0.9518 - val_loss: 8.2159 - val_accuracy: 0.9454 - lr: 0.0125
+Epoch 35/1000
+25/25 [==============================] - 5s 219ms/step - loss: 8.0036 - accuracy: 0.9518 - val_loss: 7.8144 - val_accuracy: 0.9454 - lr: 0.0125
+Epoch 36/1000
+25/25 [==============================] - 6s 223ms/step - loss: 7.5517 - accuracy: 0.9518 - val_loss: 9.5613 - val_accuracy: 0.9454 - lr: 0.0125
+Epoch 37/1000
+25/25 [==============================] - 6s 243ms/step - loss: 9.5224 - accuracy: 0.9518 - val_loss: 8.8767 - val_accuracy: 0.9454 - lr: 0.0125
+Epoch 38/1000
+25/25 [==============================] - ETA: 0s - loss: 8.0734 - accuracy: 0.9518
+Epoch 38: ReduceLROnPlateau reducing learning rate to 0.0062500000931322575.
+25/25 [==============================] - 6s 226ms/step - loss: 8.0734 - accuracy: 0.9518 - val_loss: 9.1865 - val_accuracy: 0.9454 - lr: 0.0125
+Epoch 39/1000
+25/25 [==============================] - 6s 243ms/step - loss: 6.3039 - accuracy: 0.9518 - val_loss: 5.9104 - val_accuracy: 0.9454 - lr: 0.0063
+Epoch 40/1000
+25/25 [==============================] - 6s 248ms/step - loss: 5.2418 - accuracy: 0.9518 - val_loss: 4.7321 - val_accuracy: 0.9454 - lr: 0.0063
+Epoch 41/1000
+25/25 [==============================] - 6s 223ms/step - loss: 4.7193 - accuracy: 0.9518 - val_loss: 5.5823 - val_accuracy: 0.9454 - lr: 0.0063
+Epoch 42/1000
+25/25 [==============================] - 5s 219ms/step - loss: 5.2901 - accuracy: 0.9518 - val_loss: 4.9786 - val_accuracy: 0.9454 - lr: 0.0063
+Epoch 43/1000
+25/25 [==============================] - ETA: 0s - loss: 4.8481 - accuracy: 0.9518
+Epoch 43: ReduceLROnPlateau reducing learning rate to 0.0031250000465661287.
+25/25 [==============================] - 6s 224ms/step - loss: 4.8481 - accuracy: 0.9518 - val_loss: 4.9529 - val_accuracy: 0.9454 - lr: 0.0063
+Epoch 44/1000
+25/25 [==============================] - 6s 228ms/step - loss: 3.7856 - accuracy: 0.9518 - val_loss: 3.2993 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 45/1000
+25/25 [==============================] - 6s 233ms/step - loss: 3.3129 - accuracy: 0.9518 - val_loss: 3.1674 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 46/1000
+25/25 [==============================] - 5s 219ms/step - loss: 3.1309 - accuracy: 0.9518 - val_loss: 2.8772 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 47/1000
+25/25 [==============================] - 5s 219ms/step - loss: 2.6985 - accuracy: 0.9518 - val_loss: 2.5377 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 48/1000
+25/25 [==============================] - 5s 219ms/step - loss: 2.7999 - accuracy: 0.9518 - val_loss: 2.7842 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 49/1000
+25/25 [==============================] - 6s 221ms/step - loss: 2.6393 - accuracy: 0.9518 - val_loss: 2.6603 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 50/1000
+25/25 [==============================] - 6s 235ms/step - loss: 2.5620 - accuracy: 0.9518 - val_loss: 2.5340 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 51/1000
+25/25 [==============================] - 5s 219ms/step - loss: 2.5958 - accuracy: 0.9518 - val_loss: 2.4639 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 52/1000
+25/25 [==============================] - 5s 219ms/step - loss: 2.6242 - accuracy: 0.9518 - val_loss: 2.5644 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 53/1000
+25/25 [==============================] - 5s 219ms/step - loss: 2.5161 - accuracy: 0.9518 - val_loss: 2.4931 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 54/1000
+25/25 [==============================] - ETA: 0s - loss: 2.4040 - accuracy: 0.9518
+Epoch 54: ReduceLROnPlateau reducing learning rate to 0.0015625000232830644.
+25/25 [==============================] - 5s 219ms/step - loss: 2.4040 - accuracy: 0.9518 - val_loss: 2.5182 - val_accuracy: 0.9454 - lr: 0.0031
+Epoch 55/1000
+25/25 [==============================] - 5s 219ms/step - loss: 1.9859 - accuracy: 0.9518 - val_loss: 1.7600 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 56/1000
+25/25 [==============================] - 5s 220ms/step - loss: 1.7094 - accuracy: 0.9518 - val_loss: 1.8809 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 57/1000
+25/25 [==============================] - 6s 236ms/step - loss: 1.7828 - accuracy: 0.9518 - val_loss: 1.6468 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 58/1000
+25/25 [==============================] - 6s 246ms/step - loss: 1.6057 - accuracy: 0.9518 - val_loss: 1.5974 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 59/1000
+25/25 [==============================] - 6s 252ms/step - loss: 1.5902 - accuracy: 0.9518 - val_loss: 1.6145 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 60/1000
+25/25 [==============================] - 6s 226ms/step - loss: 1.6417 - accuracy: 0.9518 - val_loss: 1.6410 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 61/1000
+25/25 [==============================] - 6s 234ms/step - loss: 1.5761 - accuracy: 0.9518 - val_loss: 1.5688 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 62/1000
+25/25 [==============================] - 6s 228ms/step - loss: 1.5536 - accuracy: 0.9518 - val_loss: 1.5222 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 63/1000
+25/25 [==============================] - 6s 228ms/step - loss: 1.4614 - accuracy: 0.9518 - val_loss: 1.4429 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 64/1000
+25/25 [==============================] - 6s 222ms/step - loss: 1.5448 - accuracy: 0.9518 - val_loss: 1.6329 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 65/1000
+25/25 [==============================] - 6s 226ms/step - loss: 1.5664 - accuracy: 0.9518 - val_loss: 1.5453 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 66/1000
+25/25 [==============================] - ETA: 0s - loss: 1.5474 - accuracy: 0.9518
+Epoch 66: ReduceLROnPlateau reducing learning rate to 0.0007812500116415322.
+25/25 [==============================] - 6s 231ms/step - loss: 1.5474 - accuracy: 0.9518 - val_loss: 1.5579 - val_accuracy: 0.9454 - lr: 0.0016
+Epoch 67/1000
+25/25 [==============================] - 6s 236ms/step - loss: 1.3109 - accuracy: 0.9518 - val_loss: 1.3305 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 68/1000
+25/25 [==============================] - 6s 241ms/step - loss: 1.2691 - accuracy: 0.9518 - val_loss: 1.2672 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 69/1000
+25/25 [==============================] - 6s 248ms/step - loss: 1.2821 - accuracy: 0.9518 - val_loss: 1.2084 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 70/1000
+25/25 [==============================] - 5s 219ms/step - loss: 1.1569 - accuracy: 0.9518 - val_loss: 1.1628 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 71/1000
+25/25 [==============================] - 5s 219ms/step - loss: 1.2049 - accuracy: 0.9518 - val_loss: 1.1728 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 72/1000
+25/25 [==============================] - 5s 219ms/step - loss: 1.1230 - accuracy: 0.9518 - val_loss: 1.0912 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 73/1000
+25/25 [==============================] - 5s 219ms/step - loss: 1.0664 - accuracy: 0.9518 - val_loss: 1.0954 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 74/1000
+25/25 [==============================] - 5s 219ms/step - loss: 1.0846 - accuracy: 0.9518 - val_loss: 1.0613 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 75/1000
+25/25 [==============================] - 5s 219ms/step - loss: 1.0525 - accuracy: 0.9518 - val_loss: 1.0564 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 76/1000
+25/25 [==============================] - 5s 220ms/step - loss: 1.0510 - accuracy: 0.9518 - val_loss: 1.0677 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 77/1000
+25/25 [==============================] - 5s 220ms/step - loss: 1.0991 - accuracy: 0.9518 - val_loss: 1.0981 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 78/1000
+25/25 [==============================] - ETA: 0s - loss: 1.0594 - accuracy: 0.9518
+Epoch 78: ReduceLROnPlateau reducing learning rate to 0.0003906250058207661.
+25/25 [==============================] - 5s 220ms/step - loss: 1.0594 - accuracy: 0.9518 - val_loss: 1.0590 - val_accuracy: 0.9454 - lr: 7.8125e-04
+Epoch 79/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.9360 - accuracy: 0.9518 - val_loss: 0.9309 - val_accuracy: 0.9454 - lr: 3.9063e-04
+Epoch 80/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.9408 - accuracy: 0.9518 - val_loss: 0.9530 - val_accuracy: 0.9454 - lr: 3.9063e-04
+Epoch 81/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.9242 - accuracy: 0.9518 - val_loss: 0.9074 - val_accuracy: 0.9454 - lr: 3.9063e-04
+Epoch 82/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.8948 - accuracy: 0.9518 - val_loss: 0.8696 - val_accuracy: 0.9454 - lr: 3.9063e-04
+Epoch 83/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.8583 - accuracy: 0.9518 - val_loss: 0.8557 - val_accuracy: 0.9454 - lr: 3.9063e-04
+Epoch 84/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.8644 - accuracy: 0.9518 - val_loss: 0.8952 - val_accuracy: 0.9454 - lr: 3.9063e-04
+Epoch 85/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.9064 - accuracy: 0.9518 - val_loss: 0.8957 - val_accuracy: 0.9454 - lr: 3.9063e-04
+Epoch 86/1000
+25/25 [==============================] - ETA: 0s - loss: 0.8690 - accuracy: 0.9518
+Epoch 86: ReduceLROnPlateau reducing learning rate to 0.00019531250291038305.
+25/25 [==============================] - 5s 219ms/step - loss: 0.8690 - accuracy: 0.9518 - val_loss: 0.8711 - val_accuracy: 0.9454 - lr: 3.9063e-04
+Epoch 87/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.8224 - accuracy: 0.9518 - val_loss: 0.8074 - val_accuracy: 0.9454 - lr: 1.9531e-04
+Epoch 88/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.7782 - accuracy: 0.9518 - val_loss: 0.7678 - val_accuracy: 0.9454 - lr: 1.9531e-04
+Epoch 89/1000
+25/25 [==============================] - 6s 222ms/step - loss: 0.7645 - accuracy: 0.9518 - val_loss: 0.7610 - val_accuracy: 0.9454 - lr: 1.9531e-04
+Epoch 90/1000
+25/25 [==============================] - 6s 225ms/step - loss: 0.7624 - accuracy: 0.9518 - val_loss: 0.7637 - val_accuracy: 0.9454 - lr: 1.9531e-04
+Epoch 91/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.7545 - accuracy: 0.9518 - val_loss: 0.7521 - val_accuracy: 0.9454 - lr: 1.9531e-04
+Epoch 92/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.7607 - accuracy: 0.9518 - val_loss: 0.7908 - val_accuracy: 0.9454 - lr: 1.9531e-04
+Epoch 93/1000
+25/25 [==============================] - 6s 222ms/step - loss: 0.7718 - accuracy: 0.9518 - val_loss: 0.7726 - val_accuracy: 0.9454 - lr: 1.9531e-04
+Epoch 94/1000
+25/25 [==============================] - ETA: 0s - loss: 0.7653 - accuracy: 0.9518
+Epoch 94: ReduceLROnPlateau reducing learning rate to 9.765625145519152e-05.
+25/25 [==============================] - 6s 221ms/step - loss: 0.7653 - accuracy: 0.9518 - val_loss: 0.7693 - val_accuracy: 0.9454 - lr: 1.9531e-04
+Epoch 95/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.7361 - accuracy: 0.9518 - val_loss: 0.7228 - val_accuracy: 0.9454 - lr: 9.7656e-05
+Epoch 96/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.7264 - accuracy: 0.9518 - val_loss: 0.7267 - val_accuracy: 0.9454 - lr: 9.7656e-05
+Epoch 97/1000
+25/25 [==============================] - 6s 232ms/step - loss: 0.7186 - accuracy: 0.9518 - val_loss: 0.7215 - val_accuracy: 0.9454 - lr: 9.7656e-05
+Epoch 98/1000
+25/25 [==============================] - 6s 226ms/step - loss: 0.7161 - accuracy: 0.9518 - val_loss: 0.7288 - val_accuracy: 0.9454 - lr: 9.7656e-05
+Epoch 99/1000
+25/25 [==============================] - 6s 236ms/step - loss: 0.7226 - accuracy: 0.9518 - val_loss: 0.7258 - val_accuracy: 0.9454 - lr: 9.7656e-05
+Epoch 100/1000
+25/25 [==============================] - ETA: 0s - loss: 0.7253 - accuracy: 0.9518
+Epoch 100: ReduceLROnPlateau reducing learning rate to 4.882812572759576e-05.
+25/25 [==============================] - 6s 223ms/step - loss: 0.7253 - accuracy: 0.9518 - val_loss: 0.7315 - val_accuracy: 0.9454 - lr: 9.7656e-05
+Epoch 101/1000
+25/25 [==============================] - 6s 227ms/step - loss: 0.7058 - accuracy: 0.9518 - val_loss: 0.7065 - val_accuracy: 0.9454 - lr: 4.8828e-05
+Epoch 102/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6947 - accuracy: 0.9518 - val_loss: 0.7098 - val_accuracy: 0.9454 - lr: 4.8828e-05
+Epoch 103/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6917 - accuracy: 0.9518 - val_loss: 0.7371 - val_accuracy: 0.9454 - lr: 4.8828e-05
+Epoch 104/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6903 - accuracy: 0.9518
+Epoch 104: ReduceLROnPlateau reducing learning rate to 2.441406286379788e-05.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6903 - accuracy: 0.9518 - val_loss: 0.7313 - val_accuracy: 0.9454 - lr: 4.8828e-05
+Epoch 105/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6793 - accuracy: 0.9518 - val_loss: 0.7350 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 106/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6706 - accuracy: 0.9518 - val_loss: 0.7016 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 107/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6646 - accuracy: 0.9518 - val_loss: 0.6856 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 108/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6599 - accuracy: 0.9518 - val_loss: 0.6900 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 109/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6575 - accuracy: 0.9518 - val_loss: 0.7040 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 110/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6581 - accuracy: 0.9518 - val_loss: 0.6755 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 111/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6567 - accuracy: 0.9518 - val_loss: 0.6673 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 112/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6550 - accuracy: 0.9518 - val_loss: 0.6567 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 113/1000
+25/25 [==============================] - 6s 224ms/step - loss: 0.6573 - accuracy: 0.9518 - val_loss: 0.6662 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 114/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6539 - accuracy: 0.9518 - val_loss: 0.6697 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 115/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6560 - accuracy: 0.9518
+Epoch 115: ReduceLROnPlateau reducing learning rate to 1.220703143189894e-05.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6560 - accuracy: 0.9518 - val_loss: 0.6579 - val_accuracy: 0.9454 - lr: 2.4414e-05
+Epoch 116/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6493 - accuracy: 0.9518 - val_loss: 0.6500 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 117/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6450 - accuracy: 0.9518 - val_loss: 0.6479 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 118/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6432 - accuracy: 0.9518 - val_loss: 0.6473 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 119/1000
+25/25 [==============================] - 6s 221ms/step - loss: 0.6423 - accuracy: 0.9518 - val_loss: 0.6462 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 120/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6411 - accuracy: 0.9518 - val_loss: 0.6447 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 121/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6405 - accuracy: 0.9518 - val_loss: 0.6436 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 122/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6388 - accuracy: 0.9518 - val_loss: 0.6427 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 123/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6373 - accuracy: 0.9518 - val_loss: 0.6423 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 124/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6369 - accuracy: 0.9518 - val_loss: 0.6454 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 125/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6370 - accuracy: 0.9518 - val_loss: 0.6406 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 126/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6361 - accuracy: 0.9518 - val_loss: 0.6418 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 127/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6353 - accuracy: 0.9518 - val_loss: 0.6408 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 128/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6351 - accuracy: 0.9518
+Epoch 128: ReduceLROnPlateau reducing learning rate to 6.10351571594947e-06.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6351 - accuracy: 0.9518 - val_loss: 0.6406 - val_accuracy: 0.9454 - lr: 1.2207e-05
+Epoch 129/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6331 - accuracy: 0.9518 - val_loss: 0.6382 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 130/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6310 - accuracy: 0.9518 - val_loss: 0.6378 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 131/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6306 - accuracy: 0.9518 - val_loss: 0.6397 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 132/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6299 - accuracy: 0.9518 - val_loss: 0.6371 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 133/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6293 - accuracy: 0.9518 - val_loss: 0.6396 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 134/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6300 - accuracy: 0.9518 - val_loss: 0.6372 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 135/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6302 - accuracy: 0.9518 - val_loss: 0.6365 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 136/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6294 - accuracy: 0.9518 - val_loss: 0.6349 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 137/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6285 - accuracy: 0.9518 - val_loss: 0.6395 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 138/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6281 - accuracy: 0.9518 - val_loss: 0.6395 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 139/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6279 - accuracy: 0.9518
+Epoch 139: ReduceLROnPlateau reducing learning rate to 3.051757857974735e-06.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6279 - accuracy: 0.9518 - val_loss: 0.6357 - val_accuracy: 0.9454 - lr: 6.1035e-06
+Epoch 140/1000
+25/25 [==============================] - 6s 227ms/step - loss: 0.6264 - accuracy: 0.9518 - val_loss: 0.6343 - val_accuracy: 0.9454 - lr: 3.0518e-06
+Epoch 141/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6256 - accuracy: 0.9518 - val_loss: 0.6364 - val_accuracy: 0.9454 - lr: 3.0518e-06
+Epoch 142/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6252 - accuracy: 0.9518 - val_loss: 0.6343 - val_accuracy: 0.9454 - lr: 3.0518e-06
+Epoch 143/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6250 - accuracy: 0.9518
+Epoch 143: ReduceLROnPlateau reducing learning rate to 1.5258789289873675e-06.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6250 - accuracy: 0.9518 - val_loss: 0.6346 - val_accuracy: 0.9454 - lr: 3.0518e-06
+Epoch 144/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6241 - accuracy: 0.9518 - val_loss: 0.6339 - val_accuracy: 0.9454 - lr: 1.5259e-06
+Epoch 145/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6237 - accuracy: 0.9518 - val_loss: 0.6340 - val_accuracy: 0.9454 - lr: 1.5259e-06
+Epoch 146/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6234 - accuracy: 0.9518 - val_loss: 0.6346 - val_accuracy: 0.9454 - lr: 1.5259e-06
+Epoch 147/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6234 - accuracy: 0.9518
+Epoch 147: ReduceLROnPlateau reducing learning rate to 7.629394644936838e-07.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6234 - accuracy: 0.9518 - val_loss: 0.6358 - val_accuracy: 0.9454 - lr: 1.5259e-06
+Epoch 148/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6231 - accuracy: 0.9518 - val_loss: 0.6332 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 149/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6228 - accuracy: 0.9518 - val_loss: 0.6333 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 150/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6228 - accuracy: 0.9518 - val_loss: 0.6325 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 151/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6226 - accuracy: 0.9518 - val_loss: 0.6333 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 152/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6226 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 153/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6225 - accuracy: 0.9518 - val_loss: 0.6332 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 154/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6224 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 155/1000
+25/25 [==============================] - 6s 238ms/step - loss: 0.6223 - accuracy: 0.9518 - val_loss: 0.6328 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 156/1000
+25/25 [==============================] - 6s 229ms/step - loss: 0.6222 - accuracy: 0.9518 - val_loss: 0.6316 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 157/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6222 - accuracy: 0.9518 - val_loss: 0.6328 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 158/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6221 - accuracy: 0.9518 - val_loss: 0.6324 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 159/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6220 - accuracy: 0.9518
+Epoch 159: ReduceLROnPlateau reducing learning rate to 3.814697322468419e-07.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6220 - accuracy: 0.9518 - val_loss: 0.6326 - val_accuracy: 0.9454 - lr: 7.6294e-07
+Epoch 160/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6218 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 3.8147e-07
+Epoch 161/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6217 - accuracy: 0.9518 - val_loss: 0.6325 - val_accuracy: 0.9454 - lr: 3.8147e-07
+Epoch 162/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6216 - accuracy: 0.9518
+Epoch 162: ReduceLROnPlateau reducing learning rate to 1.9073486612342094e-07.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6216 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 3.8147e-07
+Epoch 163/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6216 - accuracy: 0.9518 - val_loss: 0.6321 - val_accuracy: 0.9454 - lr: 1.9073e-07
+Epoch 164/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6216 - accuracy: 0.9518 - val_loss: 0.6323 - val_accuracy: 0.9454 - lr: 1.9073e-07
+Epoch 165/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6215 - accuracy: 0.9518
+Epoch 165: ReduceLROnPlateau reducing learning rate to 9.536743306171047e-08.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6215 - accuracy: 0.9518 - val_loss: 0.6325 - val_accuracy: 0.9454 - lr: 1.9073e-07
+Epoch 166/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6215 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 9.5367e-08
+Epoch 167/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6215 - accuracy: 0.9518 - val_loss: 0.6317 - val_accuracy: 0.9454 - lr: 9.5367e-08
+Epoch 168/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 168: ReduceLROnPlateau reducing learning rate to 4.7683716530855236e-08.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6317 - val_accuracy: 0.9454 - lr: 9.5367e-08
+Epoch 169/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6321 - val_accuracy: 0.9454 - lr: 4.7684e-08
+Epoch 170/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6323 - val_accuracy: 0.9454 - lr: 4.7684e-08
+Epoch 171/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 171: ReduceLROnPlateau reducing learning rate to 2.3841858265427618e-08.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6323 - val_accuracy: 0.9454 - lr: 4.7684e-08
+Epoch 172/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 2.3842e-08
+Epoch 173/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 2.3842e-08
+Epoch 174/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 174: ReduceLROnPlateau reducing learning rate to 1.1920929132713809e-08.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 2.3842e-08
+Epoch 175/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 1.1921e-08
+Epoch 176/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6316 - val_accuracy: 0.9454 - lr: 1.1921e-08
+Epoch 177/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 177: ReduceLROnPlateau reducing learning rate to 5.9604645663569045e-09.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6316 - val_accuracy: 0.9454 - lr: 1.1921e-08
+Epoch 178/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6316 - val_accuracy: 0.9454 - lr: 5.9605e-09
+Epoch 179/1000
+25/25 [==============================] - 6s 225ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6316 - val_accuracy: 0.9454 - lr: 5.9605e-09
+Epoch 180/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 180: ReduceLROnPlateau reducing learning rate to 2.9802322831784522e-09.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6317 - val_accuracy: 0.9454 - lr: 5.9605e-09
+Epoch 181/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6317 - val_accuracy: 0.9454 - lr: 2.9802e-09
+Epoch 182/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6317 - val_accuracy: 0.9454 - lr: 2.9802e-09
+Epoch 183/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 183: ReduceLROnPlateau reducing learning rate to 1.4901161415892261e-09.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6317 - val_accuracy: 0.9454 - lr: 2.9802e-09
+Epoch 184/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 1.4901e-09
+Epoch 185/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 1.4901e-09
+Epoch 186/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 186: ReduceLROnPlateau reducing learning rate to 7.450580707946131e-10.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 1.4901e-09
+Epoch 187/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 7.4506e-10
+Epoch 188/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 7.4506e-10
+Epoch 189/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 189: ReduceLROnPlateau reducing learning rate to 3.7252903539730653e-10.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 7.4506e-10
+Epoch 190/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 3.7253e-10
+Epoch 191/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 3.7253e-10
+Epoch 192/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 192: ReduceLROnPlateau reducing learning rate to 1.8626451769865326e-10.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 3.7253e-10
+Epoch 193/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.8626e-10
+Epoch 194/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 1.8626e-10
+Epoch 195/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 195: ReduceLROnPlateau reducing learning rate to 9.313225884932663e-11.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 1.8626e-10
+Epoch 196/1000
+25/25 [==============================] - 6s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 9.3132e-11
+Epoch 197/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 9.3132e-11
+Epoch 198/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 198: ReduceLROnPlateau reducing learning rate to 4.6566129424663316e-11.
+25/25 [==============================] - 6s 223ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 9.3132e-11
+Epoch 199/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 4.6566e-11
+Epoch 200/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 4.6566e-11
+Epoch 201/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 201: ReduceLROnPlateau reducing learning rate to 2.3283064712331658e-11.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 4.6566e-11
+Epoch 202/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 2.3283e-11
+Epoch 203/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 2.3283e-11
+Epoch 204/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 204: ReduceLROnPlateau reducing learning rate to 1.1641532356165829e-11.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 2.3283e-11
+Epoch 205/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 1.1642e-11
+Epoch 206/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 1.1642e-11
+Epoch 207/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 207: ReduceLROnPlateau reducing learning rate to 5.8207661780829145e-12.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6318 - val_accuracy: 0.9454 - lr: 1.1642e-11
+Epoch 208/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 5.8208e-12
+Epoch 209/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 5.8208e-12
+Epoch 210/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 210: ReduceLROnPlateau reducing learning rate to 2.9103830890414573e-12.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6319 - val_accuracy: 0.9454 - lr: 5.8208e-12
+Epoch 211/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.9104e-12
+Epoch 212/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.9104e-12
+Epoch 213/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 213: ReduceLROnPlateau reducing learning rate to 1.4551915445207286e-12.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.9104e-12
+Epoch 214/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.4552e-12
+Epoch 215/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.4552e-12
+Epoch 216/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 216: ReduceLROnPlateau reducing learning rate to 7.275957722603643e-13.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.4552e-12
+Epoch 217/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 7.2760e-13
+Epoch 218/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 7.2760e-13
+Epoch 219/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 219: ReduceLROnPlateau reducing learning rate to 3.6379788613018216e-13.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 7.2760e-13
+Epoch 220/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 3.6380e-13
+Epoch 221/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 3.6380e-13
+Epoch 222/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 222: ReduceLROnPlateau reducing learning rate to 1.8189894306509108e-13.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 3.6380e-13
+Epoch 223/1000
+25/25 [==============================] - 6s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.8190e-13
+Epoch 224/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.8190e-13
+Epoch 225/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 225: ReduceLROnPlateau reducing learning rate to 9.094947153254554e-14.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.8190e-13
+Epoch 226/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 9.0949e-14
+Epoch 227/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 9.0949e-14
+Epoch 228/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 228: ReduceLROnPlateau reducing learning rate to 4.547473576627277e-14.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 9.0949e-14
+Epoch 229/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 4.5475e-14
+Epoch 230/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 4.5475e-14
+Epoch 231/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 231: ReduceLROnPlateau reducing learning rate to 2.2737367883136385e-14.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 4.5475e-14
+Epoch 232/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.2737e-14
+Epoch 233/1000
+25/25 [==============================] - 6s 229ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.2737e-14
+Epoch 234/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 234: ReduceLROnPlateau reducing learning rate to 1.1368683941568192e-14.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.2737e-14
+Epoch 235/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.1369e-14
+Epoch 236/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.1369e-14
+Epoch 237/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 237: ReduceLROnPlateau reducing learning rate to 5.684341970784096e-15.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.1369e-14
+Epoch 238/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 5.6843e-15
+Epoch 239/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 5.6843e-15
+Epoch 240/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 240: ReduceLROnPlateau reducing learning rate to 2.842170985392048e-15.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 5.6843e-15
+Epoch 241/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.8422e-15
+Epoch 242/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.8422e-15
+Epoch 243/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 243: ReduceLROnPlateau reducing learning rate to 1.421085492696024e-15.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.8422e-15
+Epoch 244/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.4211e-15
+Epoch 245/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.4211e-15
+Epoch 246/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 246: ReduceLROnPlateau reducing learning rate to 7.10542746348012e-16.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.4211e-15
+Epoch 247/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 7.1054e-16
+Epoch 248/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 7.1054e-16
+Epoch 249/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 249: ReduceLROnPlateau reducing learning rate to 3.55271373174006e-16.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 7.1054e-16
+Epoch 250/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 3.5527e-16
+Epoch 251/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 3.5527e-16
+Epoch 252/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 252: ReduceLROnPlateau reducing learning rate to 1.77635686587003e-16.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 3.5527e-16
+Epoch 253/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.7764e-16
+Epoch 254/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.7764e-16
+Epoch 255/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 255: ReduceLROnPlateau reducing learning rate to 8.88178432935015e-17.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.7764e-16
+Epoch 256/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 8.8818e-17
+Epoch 257/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 8.8818e-17
+Epoch 258/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 258: ReduceLROnPlateau reducing learning rate to 4.440892164675075e-17.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 8.8818e-17
+Epoch 259/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 4.4409e-17
+Epoch 260/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 4.4409e-17
+Epoch 261/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 261: ReduceLROnPlateau reducing learning rate to 2.2204460823375376e-17.
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 4.4409e-17
+Epoch 262/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.2204e-17
+Epoch 263/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.2204e-17
+Epoch 264/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 264: ReduceLROnPlateau reducing learning rate to 1.1102230411687688e-17.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.2204e-17
+Epoch 265/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.1102e-17
+Epoch 266/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.1102e-17
+Epoch 267/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 267: ReduceLROnPlateau reducing learning rate to 5.551115205843844e-18.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.1102e-17
+Epoch 268/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 5.5511e-18
+Epoch 269/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 5.5511e-18
+Epoch 270/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 270: ReduceLROnPlateau reducing learning rate to 2.775557602921922e-18.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 5.5511e-18
+Epoch 271/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.7756e-18
+Epoch 272/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.7756e-18
+Epoch 273/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 273: ReduceLROnPlateau reducing learning rate to 1.387778801460961e-18.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 2.7756e-18
+Epoch 274/1000
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.3878e-18
+Epoch 275/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.3878e-18
+Epoch 276/1000
+25/25 [==============================] - ETA: 0s - loss: 0.6214 - accuracy: 0.9518
+Epoch 276: ReduceLROnPlateau reducing learning rate to 6.938894007304805e-19.
+25/25 [==============================] - 5s 219ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 1.3878e-18
+Epoch 277/1000
+25/25 [==============================] - 5s 220ms/step - loss: 0.6214 - accuracy: 0.9518 - val_loss: 0.6320 - val_accuracy: 0.9454 - lr: 6.9389e-19
+Epoch 277: early stopping

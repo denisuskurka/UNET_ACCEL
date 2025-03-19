@@ -80,7 +80,7 @@ def build_model(HEIGHT, WIDTH):
     #                                Final Output
     # -------------------------------------------------------------------------
     # Produce 1 channel of logits (no sigmoid)
-    outputs = QConv2D(
+    logits = QConv2D(
         filters=1,
         kernel_size=(1, 1),
         strides=(1, 1),
@@ -93,6 +93,9 @@ def build_model(HEIGHT, WIDTH):
         activation=None,  # no activation => raw logits
         name='output_conv'
     )(up2_conv)
+
+    # Option 1: QKeras quantized sigmoid
+    outputs = QActivation("quantized_sigmoid(16,8)", name='output_sigmoid')(logits)
 
     model = Model(inputs=inputs, outputs=outputs, name='unet_light')
     model.summary()

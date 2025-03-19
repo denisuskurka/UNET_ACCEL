@@ -24,7 +24,8 @@ PARAMETERS:
   -d, --originals_folder:   Output folder for cropped originals.
   --tolerance:              Color tolerance for extraction (default=5).
   --color:                  BGR color for boundary extraction as "B,G,R" (default="0,128,0").
-  --show_result:            Display each image & mask for debugging.
+  --show_result:            Display each result with 4 panels:
+                             [drawn, unlabeled, mask, overlay].
   --no_fill:                Skip the morphological fill step (for boundary closure).
   --help-only:              Show this help message and exit.
 
@@ -36,9 +37,11 @@ import cv2
 import numpy as np
 import argparse
 import sys
+import math
+import matplotlib.pyplot as plt
 
 # Adjust as needed
-CROP_MARGIN = (80, 20, 0, 155)
+CROP_MARGIN = (math.floor(80*0.64), math.floor(20*0.64), 0, math.floor(185*0.64))
 
 def crop_image(image, margin):
     """
@@ -107,6 +110,49 @@ def extract_specific_color(image, color_bgr, tolerance=20, fill_boundaries=False
 
     return mask
 
+def show_comparison(cropped_drawn, cropped_orig, mask):
+    """
+    Displays:
+    1) Labeled (drawn) image
+    2) Unlabeled (original) image
+    3) Binary mask
+    4) Overlay of mask on unlabeled image with partial transparency
+    """
+    # Convert BGR -> RGB for matplotlib display
+    drawn_rgb = cv2.cvtColor(cropped_drawn, cv2.COLOR_BGR2RGB)
+    orig_rgb  = cv2.cvtColor(cropped_orig, cv2.COLOR_BGR2RGB)
+    
+    # Convert single-channel mask to BGR so we can overlay in color
+    mask_bgr  = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+    # Blend with some alpha
+    overlay_bgr = cv2.addWeighted(cropped_orig, 0.7, mask_bgr, 0.3, 0)
+    overlay_rgb = cv2.cvtColor(overlay_bgr, cv2.COLOR_BGR2RGB)
+
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+
+    # 1) Labeled (drawn)
+    axes[0].imshow(drawn_rgb)
+    axes[0].set_title("Labeled (drawn)")
+    axes[0].axis('off')
+
+    # 2) Unlabeled (original)
+    axes[1].imshow(orig_rgb)
+    axes[1].set_title("Unlabeled (orig)")
+    axes[1].axis('off')
+
+    # 3) Binary mask
+    axes[2].imshow(mask, cmap='gray')
+    axes[2].set_title("Extracted Mask")
+    axes[2].axis('off')
+
+    # 4) Overlay
+    axes[3].imshow(overlay_rgb)
+    axes[3].set_title("Overlay (mask + orig)")
+    axes[3].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
 def process_drawn_images_with_separate_originals(
     drawn_folder,
     original_folder,
@@ -122,13 +168,13 @@ def process_drawn_images_with_separate_originals(
       1) Remove '-drawn' to find the corresponding unlabeled file in 'original_folder'.
          E.g. "202201051251480002VAS-drawn.BMP" -> "202201051251480002VAS.BMP"
       2) If the unlabeled file doesn't exist, skip.
-      3) Read + crop both images
-      4) Extract boundary mask from the labeled image
-      5) Save mask to 'masks_folder' and cropped original to 'originals_folder'
-
-    The mask is saved as "FILENAME_mask.png" (where FILENAME is the part before '-drawn'),
-    and the cropped original is "FILENAME_orig.png".
+      3) Read both images (OpenCV). Resize 'orig_img' to match 'drawn_img' size.
+      4) Crop both images (using CROP_MARGIN).
+      5) Extract boundary mask from 'drawn_img' and fill if needed.
+      6) (Optional) Display results if show_result=True.
+      7) Save mask to 'masks_folder' and cropped original to 'originals_folder'.
     """
+    # Ensure output folders exist
     if masks_folder and not os.path.exists(masks_folder):
         os.makedirs(masks_folder, exist_ok=True)
     if originals_folder and not os.path.exists(originals_folder):
@@ -136,17 +182,15 @@ def process_drawn_images_with_separate_originals(
 
     drawn_files = os.listdir(drawn_folder)
     
+    shown = False
     for file_name in drawn_files:
         # We only care about files that contain '-drawn'
         if '-drawn' not in file_name.lower():
             continue
         
-        # e.g., '202201051251480002VAS-drawn.BMP'
         drawn_path = os.path.join(drawn_folder, file_name)
-
-        # figure out the corresponding original
-        root, ext = os.path.splitext(file_name)  # root="202201051251480002VAS-drawn", ext=".BMP"
-        unlabeled_root = root.replace('-drawn', '')  # "202201051251480002VAS"
+        root, ext = os.path.splitext(file_name)
+        unlabeled_root = root.replace('-drawn', '')
         original_filename = f"{unlabeled_root}{ext}"
         original_path = os.path.join(original_folder, original_filename)
 
@@ -155,7 +199,7 @@ def process_drawn_images_with_separate_originals(
             print(f"No matching original for {file_name} at: {original_path} => skipping.")
             continue
 
-        # Read both images
+        # Read images
         drawn_img = cv2.imread(drawn_path)
         orig_img = cv2.imread(original_path)
 
@@ -166,11 +210,15 @@ def process_drawn_images_with_separate_originals(
             print(f"Failed to read original image: {original_path}, skipping.")
             continue
 
-        # Crop both images (same margin)
+        # 1) Resize 'orig_img' to match 'drawn_img' shape
+        h_drawn, w_drawn = drawn_img.shape[:2]
+        orig_img = cv2.resize(orig_img, (w_drawn, h_drawn), interpolation=cv2.INTER_AREA)
+
+        # 2) Crop both images
         cropped_drawn = crop_image(drawn_img, CROP_MARGIN)
         cropped_orig = crop_image(orig_img, CROP_MARGIN)
 
-        # Extract boundary mask from the labeled image
+        # 3) Extract boundary mask from the labeled (drawn) image
         mask = extract_specific_color(
             cropped_drawn,
             color_bgr=color_bgr,
@@ -178,14 +226,12 @@ def process_drawn_images_with_separate_originals(
             fill_boundaries=fill_boundaries
         )
 
-        if show_result:
-            cv2.imshow("Drawn image (cropped)", cropped_drawn)
-            cv2.imshow("Original image (cropped)", cropped_orig)
-            cv2.imshow("Mask", mask)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+        # Show the results if requested
+        if show_result and shown == False:
+            shown = True
+            show_comparison(cropped_drawn, cropped_orig, mask)
 
-        # Output filenames
+        # Build output filenames
         output_mask_name = f"{unlabeled_root}_mask.png"
         output_orig_name = f"{unlabeled_root}_orig.png"
 
@@ -250,7 +296,7 @@ def main():
     )
     parser.add_argument(
         "--show_result", action="store_true",
-        help="If set, display each cropped image & mask for debugging."
+        help="If set, display each result with 4 panels: [drawn, unlabeled, mask, overlay]."
     )
     parser.add_argument(
         "--no_fill", action="store_true",

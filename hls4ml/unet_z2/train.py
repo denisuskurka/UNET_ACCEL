@@ -20,7 +20,7 @@ from model import build_model
 # Parameters
 # ----------------------------
 HEIGHT, WIDTH = 128, 128      # image/mask dimensions
-BATCH_SIZE = 3               # adjust as needed
+BATCH_SIZE = 2               # adjust as needed
 n_epochs = 1000
 LEARNING_RATE = 0.1          # learning rate
 
@@ -62,7 +62,7 @@ def bce_dice_loss(bce_weight=0.3):
     Returns:
       A loss function that computes: bce_weight * BCE + (1.0 - bce_weight) * Dice loss.
     """
-    bce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+    bce = tf.keras.losses.BinaryCrossentropy(from_logits=False)
     def loss(y_true, y_pred):
         loss_bce = bce(y_true, y_pred)
         loss_dice = dice_loss(y_true, y_pred)
@@ -74,7 +74,7 @@ def bce_dice_loss(bce_weight=0.3):
 # ----------------------------
 image_paths, mask_paths = get_image_mask_paths(IMAGES_DIR, MASKS_DIR)
 n_samples = len(image_paths)
-split_idx = int(0.8 * n_samples)  # 70% for training, 30% for validation
+split_idx = int(0.8 * n_samples)  # 80% for training, 20% for validation
 
 train_image_paths, val_image_paths = image_paths[:split_idx], image_paths[split_idx:]
 train_mask_paths, val_mask_paths = mask_paths[:split_idx], mask_paths[split_idx:]
@@ -98,8 +98,8 @@ model.compile(loss=loss_fn, optimizer=optimizer, metrics=["accuracy"])
 # Training
 # ----------------------------
 callbacks = [
-    tf.keras.callbacks.EarlyStopping(patience=100, verbose=1),
-    tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, verbose=1)
+    tf.keras.callbacks.EarlyStopping(patience=5, verbose=1),
+    tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, verbose=1)
 ]
 
 print("Starting training...")

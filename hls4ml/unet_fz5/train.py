@@ -28,7 +28,7 @@ LEARNING_RATE = 1e-3
 IMAGES_DIR = "./data/images"
 MASKS_DIR = "./data/masks"
 
-PRUNING = True
+PRUNING = False
 
 # Prune all convolutional and dense layers gradually from 0 to 50% sparsity every 2 epochs,
 # ending by the 10th epoch
@@ -62,6 +62,13 @@ train_batch = next(iter(train_ds))
 first_img, first_mask = train_batch[0][0], train_batch[1][0]
 first_img = first_img.numpy()
 first_mask = first_mask.numpy()
+
+print("Mask min/max:", first_mask.min(), first_mask.max())
+print("Image min/max:", first_img.min(), first_img.max())
+
+print("first_img shape:", first_img.shape)
+print("first_mask shape:", first_mask.shape)
+
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8,4))
 ax1.imshow(first_img[..., 0], cmap='gray')
@@ -102,7 +109,7 @@ checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
 
 earlystop_cb = tf.keras.callbacks.EarlyStopping(
     monitor="val_loss",
-    patience=100,
+    patience=50,
     restore_best_weights=True,
     verbose=1
 )
@@ -110,7 +117,7 @@ earlystop_cb = tf.keras.callbacks.EarlyStopping(
 reduce_lr_cb = tf.keras.callbacks.ReduceLROnPlateau(
     monitor="val_loss",
     factor=0.1,
-    patience=500,
+    patience=20,
     verbose=1
 )
 

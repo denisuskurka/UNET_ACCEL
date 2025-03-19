@@ -21,7 +21,7 @@ IMAGE_WIDTH  = 128
 IMAGES_DIR   = "./data/images"
 
 #MODEL_PATH    = "quantized_cnn_model_final.h5"
-MODEL_PATH    = "quantized_cnn_model_final_128_40.h5"
+MODEL_PATH    = "quantized_cnn_model_final.h5"
 INPUT_EXPORT  = "X_test.npy"     # still save as .npy
 RAW_EXPORT    = "X_test.bin"     # new: raw binary file
 OUTPUT_EXPORT = "Y_baseline.npy"
@@ -91,7 +91,7 @@ def show_result(input_image, pred_mask):
     plt.show()
 
 def main():
-    image_path = get_image_x_path(IMAGES_DIR, 1)
+    image_path = get_image_x_path(IMAGES_DIR, 5)
     if image_path is None:
         print(f"No image files found in {IMAGES_DIR}.")
         return
