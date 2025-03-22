@@ -88,7 +88,7 @@ model = build_model(HEIGHT, WIDTH)
 # ----------------------------
 # Compile the Model (Focal Tversky)
 # ----------------------------
-loss_fn = focal_tversky_loss(alpha=0.7, beta=0.3, gamma=2.0)
+loss_fn = focal_tversky_loss(alpha=0.3, beta=0.7, gamma=2.0)
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 model.compile(loss=loss_fn, optimizer=optimizer, metrics=["accuracy"])
 

@@ -104,7 +104,7 @@ def show_result(input_image, pred_mask):
 def main():
     # Get one image from the images folder.
     image_path = get_first_image_path(IMAGES_DIR)
-    image_path = get_image_x_path(IMAGES_DIR, x=5)
+    image_path = get_image_x_path(IMAGES_DIR, x=6)
     if image_path is None:
         print(f"No image files found in {IMAGES_DIR}.")
         return
