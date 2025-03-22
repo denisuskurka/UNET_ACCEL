@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 """
 A minimal training script for your QKeras-based UNet-light model for segmentation.
-This version uses a combined Binary Crossentropy + Dice loss to improve mask generation.
-It forces TensorFlow to run on the CPU (to help debug GPU/cuDNN issues).
+This version uses Focal Tversky loss to better handle small masks (~1% of the image).
+
+Changes:
+  - Only saves the best model (by val_loss) as "best_model.h5"
+  - At the end, plots training history (loss & accuracy) using matplotlib
 
 Requirements:
   • A 'dataset' module that provides get_image_mask_paths() and create_dataset().
@@ -13,60 +16,55 @@ import os
 import time
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 from dataset import get_image_mask_paths, create_dataset
 from model import build_model
 
 # ----------------------------
 # Parameters
 # ----------------------------
-HEIGHT, WIDTH = 128, 128      # image/mask dimensions
-BATCH_SIZE = 2               # adjust as needed
-n_epochs = 1000
-LEARNING_RATE = 0.1          # learning rate
+HEIGHT, WIDTH = 128, 128       # image/mask dimensions
+BATCH_SIZE = 2                 # adjust as needed
+N_EPOCHS = 1000
+LEARNING_RATE = 0.01           # learning rate
 
-# Directories for your data (make sure these paths are correct)
+# Directories for your data
 IMAGES_DIR = "./data/images"
 MASKS_DIR = "./data/masks"
 
 # ----------------------------
-# Loss Functions: Dice and Combined BCE + Dice Loss
+# Focal Tversky Loss
 # ----------------------------
-def dice_loss(y_true, y_pred, eps=1e-6):
+def focal_tversky_loss(alpha=0.7, beta=0.3, gamma=2.0, eps=1e-6):
     """
-    Computes the Dice loss. Applies sigmoid to the logits before computing the Dice coefficient.
+    Focal Tversky loss for imbalanced segmentation (esp. small masks).
     
-    Parameters:
-      y_true: Ground truth mask.
-      y_pred: Logits from the model.
-      eps: Small epsilon value to avoid division by zero.
-    
-    Returns:
-      Dice loss value.
-    """
-    y_pred = tf.nn.sigmoid(y_pred)
-    y_true_f = tf.reshape(y_true, [-1])
-    y_pred_f = tf.reshape(y_pred, [-1])
-    intersection = tf.reduce_sum(y_true_f * y_pred_f)
-    union = tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + eps
-    dice = 2.0 * intersection / union
-    return 1.0 - dice
+    alpha > 0.5 => weigh FN more
+    beta  > 0.5 => weigh FP more (less common for small masks)
+    gamma > 1   => focal effect focusing on hard examples
 
-def bce_dice_loss(bce_weight=0.3):
+    y_true, y_pred shapes: [batch, height, width, 1]
+    y_pred is expected to be probabilities in [0,1].
     """
-    Returns a combined loss function as a weighted sum of Binary Crossentropy (from logits)
-    and Dice loss.
-    
-    Parameters:
-      bce_weight: Weight factor for the BCE loss. (Dice weight will be 1.0 - bce_weight)
-    
-    Returns:
-      A loss function that computes: bce_weight * BCE + (1.0 - bce_weight) * Dice loss.
-    """
-    bce = tf.keras.losses.BinaryCrossentropy(from_logits=False)
     def loss(y_true, y_pred):
-        loss_bce = bce(y_true, y_pred)
-        loss_dice = dice_loss(y_true, y_pred)
-        return bce_weight * loss_bce + (1.0 - bce_weight) * loss_dice
+        # clip to avoid log(0)
+        y_pred = tf.clip_by_value(y_pred, eps, 1 - eps)
+
+        # Flatten
+        y_true_f = tf.reshape(y_true, [-1])
+        y_pred_f = tf.reshape(y_pred, [-1])
+
+        # TPs, FPs, FNs
+        tp = tf.reduce_sum(y_true_f * y_pred_f)
+        fn = tf.reduce_sum(y_true_f * (1 - y_pred_f))
+        fp = tf.reduce_sum((1 - y_true_f) * y_pred_f)
+
+        # Tversky index
+        tversky_index = (tp + eps) / (tp + alpha * fn + beta * fp + eps)
+        # Focal Tversky
+        focal_tversky = tf.pow((1.0 - tversky_index), gamma)
+
+        return focal_tversky
     return loss
 
 # ----------------------------
@@ -88,25 +86,93 @@ val_ds = create_dataset(val_image_paths, val_mask_paths, BATCH_SIZE, HEIGHT, WID
 model = build_model(HEIGHT, WIDTH)
 
 # ----------------------------
-# Compile the Model with Combined BCE + Dice Loss
+# Compile the Model (Focal Tversky)
 # ----------------------------
-loss_fn = bce_dice_loss(bce_weight=0.5)
+loss_fn = focal_tversky_loss(alpha=0.7, beta=0.3, gamma=2.0)
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 model.compile(loss=loss_fn, optimizer=optimizer, metrics=["accuracy"])
 
 # ----------------------------
-# Training
+# Training Callbacks
 # ----------------------------
-callbacks = [
-    tf.keras.callbacks.EarlyStopping(patience=5, verbose=1),
-    tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, verbose=1)
-]
+checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
+    "best_model.h5",       # save as "best_model.h5"
+    monitor="val_loss",    # track validation loss
+    save_best_only=True,   # only save the best model
+    verbose=1
+)
 
+earlystop_cb = tf.keras.callbacks.EarlyStopping(
+    patience=10,
+    verbose=1
+)
+
+reduce_lr_cb = tf.keras.callbacks.ReduceLROnPlateau(
+    monitor='val_loss',
+    factor=0.5,
+    patience=2,
+    verbose=1
+)
+
+callbacks = [checkpoint_cb, earlystop_cb, reduce_lr_cb]
+
+# ----------------------------
+# Train the Model
+# ----------------------------
 print("Starting training...")
 start = time.time()
-history = model.fit(train_ds, epochs=n_epochs, validation_data=val_ds, callbacks=callbacks, verbose=1)
+history = model.fit(
+    train_ds,
+    epochs=N_EPOCHS,
+    validation_data=val_ds,
+    callbacks=callbacks,
+    verbose=1
+)
 end = time.time()
+
 print(f"\nTraining completed in {(end - start) / 60.0:.2f} minutes.")
 
-# Save the trained model
-model.save('quantized_cnn_model_cpu.h5')
+# ----------------------------
+# We do NOT save the final model. We rely on best_model.h5
+# ----------------------------
+
+# ----------------------------
+# Summarize and Plot History
+# ----------------------------
+train_loss = history.history['loss']
+val_loss = history.history['val_loss']
+
+train_acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+
+epochs_ran = range(1, len(train_loss) + 1)
+
+print("\nFinal Epoch Stats:")
+print(f"  Training Loss:      {train_loss[-1]:.4f}")
+print(f"  Validation Loss:    {val_loss[-1]:.4f}")
+print(f"  Training Accuracy:  {train_acc[-1]:.4f}")
+print(f"  Validation Accuracy:{val_acc[-1]:.4f}")
+
+# Plot the loss curves
+plt.figure(figsize=(12,5))
+plt.subplot(1,2,1)
+plt.plot(epochs_ran, train_loss, label='Train Loss')
+plt.plot(epochs_ran, val_loss, label='Val Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Loss over Epochs')
+plt.legend()
+
+# Plot the accuracy curves
+plt.subplot(1,2,2)
+plt.plot(epochs_ran, train_acc, label='Train Acc')
+plt.plot(epochs_ran, val_acc, label='Val Acc')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Accuracy over Epochs')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+print("\nDone. The best model is saved as 'best_model.h5'.")

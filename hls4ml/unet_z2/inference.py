@@ -30,7 +30,7 @@ print("Running on CPU only.")
 IMAGE_HEIGHT = 128
 IMAGE_WIDTH  = 128
 IMAGES_DIR   = "./data/images"               # folder with your images
-MODEL_PATH   = "quantized_cnn_model_cpu.h5"    # path to your saved QKeras model
+MODEL_PATH   = "best_model.h5"    # path to your saved QKeras model
 INPUT_EXPORT = "X_test.npy"                  # filename to export input image
 OUTPUT_EXPORT = "Y_baseline.npy"             # filename to export model prediction
 
