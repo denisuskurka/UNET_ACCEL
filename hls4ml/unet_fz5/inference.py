@@ -10,8 +10,6 @@ from qkeras.utils import _add_supported_quantized_objects
 from tensorflow_model_optimization.python.core.sparsity.keras import pruning_wrapper
 from qkeras import QConv2DBatchnorm, QActivation
 
-from loss import bce_dice_loss, dice_coefficient
-
 # Force TensorFlow to use the CPU only (optional).
 tf.config.set_visible_devices([], 'GPU')
 print("Running on CPU only.")
@@ -21,7 +19,7 @@ IMAGE_WIDTH  = 128
 IMAGES_DIR   = "./data/images"
 
 #MODEL_PATH    = "quantized_cnn_model_final.h5"
-MODEL_PATH    = "quantized_cnn_model_final.h5"
+MODEL_PATH    = "best_model.h5"
 INPUT_EXPORT  = "X_test.npy"     # still save as .npy
 RAW_EXPORT    = "X_test.bin"     # new: raw binary file
 OUTPUT_EXPORT = "Y_baseline.npy"
@@ -83,7 +81,7 @@ def show_result(input_image, pred_mask):
         vmin=-abs_max,
         vmax=abs_max
     )
-    axes[1].set_title("Predicted Mask (Logits)")
+    axes[1].set_title("Predicted Mask")
     axes[1].axis("off")
 
     fig.colorbar(im, ax=axes[1], fraction=0.046, pad=0.04)
@@ -91,7 +89,7 @@ def show_result(input_image, pred_mask):
     plt.show()
 
 def main():
-    image_path = get_image_x_path(IMAGES_DIR, 5)
+    image_path = get_image_x_path(IMAGES_DIR, 10)
     if image_path is None:
         print(f"No image files found in {IMAGES_DIR}.")
         return
@@ -126,11 +124,7 @@ def main():
     print(f"Also exported raw bytes to '{RAW_EXPORT}' "
           f"(size: {image_raw.size} floats => {image_raw.size * 4} bytes).")
 
-    # Load QKeras model (if you still need to do inference)
-    custom_objects = {
-        "loss": bce_dice_loss(bce_weight=0.3),
-        "dice_coefficient": dice_coefficient
-    }
+    custom_objects = {}
     _add_supported_quantized_objects(custom_objects)
     custom_objects['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
     model = tf.keras.models.load_model(
