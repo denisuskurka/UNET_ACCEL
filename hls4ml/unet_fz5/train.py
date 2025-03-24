@@ -42,7 +42,7 @@ LEARNING_RATE = 0.001
 IMAGES_DIR = "./data/images"
 MASKS_DIR = "./data/masks"
 
-PRUNING = False  # Set True if you want to prune
+PRUNING = True  # Set True if you want to prune
 
 # Choose which loss function to use:
 USE_FOCAL_TVERSKY = True  # True => use focal_tversky_loss; False => bce_dice_loss
@@ -54,8 +54,8 @@ def pruneFunction(layer):
             initial_sparsity=0.0,
             final_sparsity=0.5,
             begin_step=0,
-            end_step=2000,
-            frequency=50
+            end_step=5000,
+            frequency=200
         )
     }
     if isinstance(layer, tf.keras.layers.Conv2D):
