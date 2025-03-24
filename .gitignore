@@ -1,5 +1,5 @@
 # Exclude data for NN
-hls4ml/unet_fz5/data
+#hls4ml/unet_fz5/data
 hls4ml/unet_z2/data
 model_construct/SN
 SN
