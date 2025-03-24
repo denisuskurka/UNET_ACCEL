@@ -12,6 +12,7 @@ import numpy as np
 from pathlib import Path
 import pprint
 import plotting
+from loss import bce_dice_loss, focal_tversky_loss
 from inference import load_and_preprocess_image, show_result, get_image_x_path
 from dataset import get_image_mask_paths, create_dataset
 
@@ -27,7 +28,9 @@ image_hdr = load_and_preprocess_image(image_path)
 image = np.ascontiguousarray(image_hdr)
 
 # Setup custom objects for loading the model
-co = {}
+co = {
+    "loss":focal_tversky_loss,
+}
 _add_supported_quantized_objects(co)
 os.environ['PATH'] = os.environ['XILINX_VIVADO'] + '/bin:' + os.environ['PATH']
 co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
