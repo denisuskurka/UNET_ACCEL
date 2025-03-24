@@ -12,7 +12,6 @@ import numpy as np
 from pathlib import Path
 import pprint
 import plotting
-from loss import bce_dice_loss, dice_coefficient
 from inference import load_and_preprocess_image, show_result, get_image_x_path
 from dataset import get_image_mask_paths, create_dataset
 
@@ -28,16 +27,13 @@ image_hdr = load_and_preprocess_image(image_path)
 image = np.ascontiguousarray(image_hdr)
 
 # Setup custom objects for loading the model
-co = {
-    "loss":bce_dice_loss(bce_weight=0.3),
-    "dice_coefficient":dice_coefficient
-}
+co = {}
 _add_supported_quantized_objects(co)
 os.environ['PATH'] = os.environ['XILINX_VIVADO'] + '/bin:' + os.environ['PATH']
 co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
 
 # Load and strip pruning from the quantized model.
-qmodel = tf.keras.models.load_model('quantized_cnn_model_final_128_40.h5', custom_objects=co)
+qmodel = tf.keras.models.load_model('best_model.h5', custom_objects=co)
 qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
