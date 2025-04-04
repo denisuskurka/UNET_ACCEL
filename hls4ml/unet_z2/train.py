@@ -24,13 +24,13 @@ from model import build_model
 # Parameters
 # ----------------------------
 HEIGHT, WIDTH = 128, 128       # image/mask dimensions
-BATCH_SIZE = 2                 # adjust as needed
+BATCH_SIZE = 4                 # adjust as needed
 N_EPOCHS = 1000
 LEARNING_RATE = 0.01           # learning rate
 
 # Directories for your data
 IMAGES_DIR = "./data/images"
-MASKS_DIR = "./data/masks"
+MASKS_DIR = "./data/masks_outline"
 
 # ----------------------------
 # Focal Tversky Loss
@@ -88,7 +88,7 @@ model = build_model(HEIGHT, WIDTH)
 # ----------------------------
 # Compile the Model (Focal Tversky)
 # ----------------------------
-loss_fn = focal_tversky_loss(alpha=0.3, beta=0.7, gamma=2.0)
+loss_fn = focal_tversky_loss(alpha=0.3, beta=0.7, gamma=3.0)
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 model.compile(loss=loss_fn, optimizer=optimizer, metrics=["accuracy"])
 

@@ -265,12 +265,12 @@ def process_drawn_images_with_separate_originals(
     
     for file_name in drawn_files:
         # We only care about files that contain '-drawn'
-        if '-drawn' not in file_name.lower():
+        if '-labeled' not in file_name.lower():
             continue
         
         drawn_path = os.path.join(drawn_folder, file_name)
         root, ext = os.path.splitext(file_name)
-        unlabeled_root = root.replace('-drawn', '')
+        unlabeled_root = root.replace('-labeled', '')
         original_filename = f"{unlabeled_root}{ext}"
         original_path = os.path.join(original_folder, original_filename)
 
@@ -359,7 +359,7 @@ def main():
     )
     parser.add_argument(
         "-a", "--drawn_folder",
-        default="/home/komaro/デスクトップ/Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data/Patricie/",
+        default="/home/komaro/デスクトップ/Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data/anezka/",
         help="Path to folder containing labeled images with '-drawn' in the filename."
     )
     parser.add_argument(
@@ -379,7 +379,7 @@ def main():
     )
     parser.add_argument(
         "--comparisons_folder",
-        default=None,
+        default="./comparisons",
         help="Optional folder to store the 4-panel comparison figure (e.g. ./comparisons)."
     )
     parser.add_argument(
@@ -388,8 +388,8 @@ def main():
     )
     parser.add_argument(
         "--color",
-        default="0,128,0",
-        help="BGR color for boundary extraction as 'B,G,R' (default='0,128,0')."
+        default="0,164,255",
+        help="BGR color for boundary extraction as 'B,G,R' (default='0,164,255')."
     )
     parser.add_argument(
         "--show_result", action="store_true",
@@ -404,7 +404,7 @@ def main():
         help="Erode (shrink) the mask by this many pixels (default=0)."
     )
     parser.add_argument(
-        "--max_ratio", type=float, default=0.15,
+        "--max_ratio", type=float, default=0.02,
         help="If mask's white ratio is higher than this fraction, skip saving. (default=0.15 => 15%%)"
     )
 

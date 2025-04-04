@@ -35,7 +35,7 @@ from loss import bce_dice_loss, focal_tversky_loss
 # Parameters
 # ----------------------------
 HEIGHT, WIDTH = 128, 128
-BATCH_SIZE = 4
+BATCH_SIZE = 8
 N_EPOCHS = 1000
 LEARNING_RATE = 0.001
 
@@ -43,7 +43,6 @@ IMAGES_DIR = "./data/images"
 MASKS_DIR = "./data/masks"
 
 PRUNING = True  # Set True if you want to prune
-
 # Choose which loss function to use:
 USE_FOCAL_TVERSKY = True  # True => use focal_tversky_loss; False => bce_dice_loss
 
@@ -54,7 +53,7 @@ def pruneFunction(layer):
             initial_sparsity=0.0,
             final_sparsity=0.5,
             begin_step=0,
-            end_step=5000,
+            end_step=20000,
             frequency=200
         )
     }
@@ -80,7 +79,7 @@ val_ds = create_dataset(val_image_paths, val_mask_paths, BATCH_SIZE, HEIGHT, WID
 
 # Show the first image/mask from the training dataset
 train_batch = next(iter(train_ds))
-first_img, first_mask = train_batch[0][0], train_batch[1][0]
+first_img, first_mask = train_batch[0][1], train_batch[1][1]
 first_img = first_img.numpy()
 first_mask = first_mask.numpy()
 
@@ -132,7 +131,7 @@ checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
 
 earlystop_cb = tf.keras.callbacks.EarlyStopping(
     monitor="val_loss",
-    patience=50,
+    patience=200,
     restore_best_weights=True,
     verbose=1
 )
