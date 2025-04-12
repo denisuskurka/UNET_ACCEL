@@ -49,7 +49,7 @@ import matplotlib.pyplot as plt
 # Adjust as needed
 CROP_MARGIN = (math.floor(80*0.64), math.floor(20*0.64), 0, math.floor(185*0.64))
 
-def crop_image(image, margin):
+def crop_image(image, margin=CROP_MARGIN):
     """
     Crops the image by 'margin' on each side. 'margin' can be:
       1) An integer, which means crop that many pixels from every side.
