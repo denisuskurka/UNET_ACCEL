@@ -6,6 +6,9 @@ SN
 model_construct/data
 model_construct/progress
 
+# Images
+*.png
+
 # Models
 *.onnx
 *.pth

@@ -1,4 +1,5 @@
 import os
+import shutil
 import numpy as np
 from flask import Flask, request, url_for, send_from_directory
 from PIL import Image
@@ -41,9 +42,24 @@ def index():
     rectangle_mask_url = None
     final_cropped_url = None
     ellipse_inference_url = None
+    ellipse_fitted_url = None
+    ellipse_final_url = None
     filename = None
 
     if request.method == 'POST':
+        # ------------------------------------------------------------------
+        # Delete everything from ./data at the start of a new upload
+        # ------------------------------------------------------------------
+        for f in os.listdir(UPLOAD_FOLDER):
+            path_ = os.path.join(UPLOAD_FOLDER, f)
+            try:
+                if os.path.isfile(path_):
+                    os.remove(path_)
+                else:
+                    shutil.rmtree(path_)
+            except Exception as e:
+                print(f"Could not remove {path_}. Reason: {e}")
+
         # 1) Check and save the uploaded file
         if 'file' not in request.files:
             return "No file part in request."
@@ -87,13 +103,13 @@ def index():
         uploaded_file_url = url_for('uploaded_file', filename=STEM_INPUT_BMP)
 
         # --------------------------
-        # 3) (Optional) DMA -> produce result.bin => data_result.bmp
+        # 3) DMA -> produce result.bin => data_result.bmp
         # --------------------------
         result_bin_path = os.path.join(UPLOAD_FOLDER, RESULT_BIN)
         result_bmp_path = os.path.join(UPLOAD_FOLDER, RESULT_BMP)
 
-        # Here you might have something like:
-        # os.system('./run_dma.sh')
+        # Run DMA
+        os.system('./run_dma.sh')
 
         if os.path.exists(result_bin_path):
             # Build a grayscale BMP from result.bin
@@ -141,55 +157,44 @@ def index():
                     with Image.open(cropped_filepath) as cropped_img:
                         final_crop = crop_image_by_box(cropped_img, (xmin, ymin, xmax, ymax))
                         final_cropped_path = os.path.join(UPLOAD_FOLDER, FINAL_CROPPED_PNG)
-                        # Save final crop
                         final_crop.save(final_cropped_path)
                         final_cropped_url = url_for('uploaded_file', filename=FINAL_CROPPED_PNG)
 
                         # 5a) Now run QKeras inference on final_cropped_path
                         # The 'infer_ellipse.py' script references fixed constants:
-                        #   INPUT_PIC = "./data/data_cropped_final.bmp"
-                        #   OUTPUT_EXPORT = "./data/ellipse_infer.bmp"
-                        # So let's rename/copy final_cropped_path to "data_cropped_final.bmp"
-                        # so the script sees the correct input.
-
+                        #   INPUT_PIC = "./data/data_cropped_final.bmp"  or .png
+                        #   OUTPUT_EXPORT = "./data/ellipse_infer.bmp"   or .png
+                        # So let's rename/copy final_cropped_path to "data_cropped_final.png"
                         final_cropped_const = os.path.join(UPLOAD_FOLDER, "data_cropped_final.png")
                         if final_cropped_path != final_cropped_const:
-                            # rename or copy:
                             os.replace(final_cropped_path, final_cropped_const)
 
                         # Now call the inference script
-                        # This will read data_cropped_final.bmp, produce ellipse_infer.bmp
                         infer_ellipse()
 
-                        # Show ellipse_infer.bmp
-                        ellipse_infer_bmp = os.path.join(UPLOAD_FOLDER, "ellipse_infer.png")
-                        if os.path.exists(ellipse_infer_bmp):
+                        # Show ellipse_infer.png
+                        ellipse_infer_png = os.path.join(UPLOAD_FOLDER, "ellipse_infer.png")
+                        if os.path.exists(ellipse_infer_png):
                             ellipse_inference_url = url_for('uploaded_file', filename="ellipse_infer.png")
 
-                        # Fit ellipse around infered ellipse
+                        # Fit ellipse around inferred ellipse
                         fit_ellipse()
 
-                        # Show elipse_fitted.png
-                        ellipse_fitted_bmp = os.path.join(UPLOAD_FOLDER, "ellipse_fitted.png")
-                        if os.path.exists(ellipse_fitted_bmp):
+                        # Show ellipse_fitted.png
+                        ellipse_fitted_png = os.path.join(UPLOAD_FOLDER, "ellipse_fitted.png")
+                        if os.path.exists(ellipse_fitted_png):
                             ellipse_fitted_url = url_for('uploaded_file', filename="ellipse_fitted.png")
 
                         # Paint fitted ellipse
                         paint_ellipse()
 
-                        # Show elipse_fitted.png
-                        ellipse_final_bmp = os.path.join(UPLOAD_FOLDER, "final.png")
-                        if os.path.exists(ellipse_final_bmp):
+                        # Show final.png
+                        ellipse_final_png = os.path.join(UPLOAD_FOLDER, "final.png")
+                        if os.path.exists(ellipse_final_png):
                             ellipse_final_url = url_for('uploaded_file', filename="final.png")
 
-
     # -----------------------
-    # Return an HTML page that displays:
-    #   1) The 128×128 grayscale input image
-    #   2) The DMA result
-    #   3) The rectangle mask
-    #   4) The final cropped region
-    #   5) The inference result from infer_ellipse.py
+    # Return an HTML page that displays various results
     # -----------------------
     return f'''
     <html>
@@ -205,9 +210,9 @@ def index():
             {f'<img src="{result_image_url}" alt="DMA Result" style="margin-right:20px;"/>' if result_image_url else ''}
             {f'<img src="{rectangle_mask_url}" alt="Rectangle Mask" style="margin-right:20px;"/>' if rectangle_mask_url else ''}
             {f'<img src="{final_cropped_url}" alt="Final Cropped" style="margin-right:20px;"/>' if final_cropped_url else ''}
-            {f'<img src="{ellipse_inference_url}" alt="Ellipse Inference"/>' if ellipse_inference_url else ''}
-            {f'<img src="{ellipse_fitted_url}" alt="Ellipse Inference"/>' if ellipse_fitted_url else ''}
-            {f'<img src="{ellipse_final_url}" alt="Ellipse Inference"/>' if ellipse_final_url else ''}
+            {f'<img src="{ellipse_inference_url}" alt="Ellipse Inference" style="margin-right:20px;"/>' if ellipse_inference_url else ''}
+            {f'<img src="{ellipse_fitted_url}" alt="Fitted Ellipse" style="margin-right:20px;"/>' if ellipse_fitted_url else ''}
+            {f'<img src="{ellipse_final_url}" alt="Painted Ellipse"/>' if ellipse_final_url else ''}
         </body>
     </html>
     '''

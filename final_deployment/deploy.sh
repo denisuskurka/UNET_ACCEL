@@ -8,7 +8,7 @@ REMOTE_USER="petalinux"
 REMOTE_HOST="85.70.252.121"
 REMOTE_PORT=8112
 REMOTE_DIR="/home/petalinux/flask_app"
-LOCAL_FILES="app.py requirements.txt"
+LOCAL_FILES="*.py dma_driver.c dummy.bin ellipse_model.h5 requirements.txt run_dma.sh"
 
 # --------------------------------------------------
 # 1) Package the application into a zip
@@ -27,9 +27,6 @@ ssh -p $REMOTE_PORT "$REMOTE_USER@$REMOTE_HOST" << EOF
   echo "==> Removing old deployment (if present)"
   rm -rf "$REMOTE_DIR"
 
-  echo "==> Installing pip"
-  sudo dnf install python3-pip
-
   echo "==> Creating new deployment directory"
   mkdir -p "$REMOTE_DIR"
 
@@ -38,7 +35,9 @@ ssh -p $REMOTE_PORT "$REMOTE_USER@$REMOTE_HOST" << EOF
 
   echo "==> Installing requirements"
   cd "$REMOTE_DIR"
-  pip install -r requirements.txt
+  pip3 install -r requirements.txt
+
+  gcc dma_driver.c -o dma_driver
 
   echo "==> Starting Flask app on 0.0.0.0:5000"
   # Run in the background to keep it alive after logout
