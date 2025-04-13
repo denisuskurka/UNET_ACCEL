@@ -5,6 +5,7 @@ model_construct/SN
 SN
 model_construct/data
 model_construct/progress
+ellipse/
 
 # Images
 *.png
