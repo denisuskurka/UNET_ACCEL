@@ -7,7 +7,6 @@ ZIP_NAME="flask_app.zip"
 REMOTE_USER="petalinux"
 REMOTE_HOST="85.70.252.121"
 REMOTE_PORT=8112
-REMOTE_DIR="/home/petalinux/flask_app"
 LOCAL_FILES="*.py dma_driver.c dummy.bin ellipse_model.h5 requirements.txt run_dma.sh start_dma_engine.sh stem_model.h5"
 
 # --------------------------------------------------
@@ -46,19 +45,20 @@ ssh -p $REMOTE_PORT "$REMOTE_USER@$REMOTE_HOST" << 'EOF'
 
   # 2c) Remove old deployment
   echo "==> Removing old deployment (if present)"
-  rm -rf "$REMOTE_DIR"
+  rm -rf "/home/petalinux/flask_app"
 
   # 2d) Create new deployment directory
   echo "==> Creating new deployment directory"
-  mkdir -p "$REMOTE_DIR"
+  mkdir "/home/petalinux/flask_app"
+  cd "/home/petalinux/flask_app"
+  mv "/home/petalinux/flask_app.zip" "/home/petalinux/flask_app/flask_app.zip"
 
   # 2e) Unzip the new application
   echo "==> Unzipping application"
-  unzip "/home/petalinux/flask_app.zip" -d "$REMOTE_DIR"
+  unzip "/home/petalinux/flask_app/flask_app.zip"
 
   # 2f) Install Python requirements
   echo "==> Installing requirements"
-  cd "$REMOTE_DIR"
   pip3 install -r requirements.txt
 
   # 2g) Compile the DMA driver
@@ -69,5 +69,6 @@ EOF
 echo "==> Deployment completed!"
 echo "Now run DMA driver with:"
 echo "   sudo ./start_dma_engine.sh"
+echo "   Hint: you can kill it with the same cmd."
 echo "Run the application with:"
 echo "   python app.py"
