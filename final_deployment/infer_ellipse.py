@@ -85,6 +85,7 @@ def infer_ellipse():
     #    Typically, you might have values in [0..1] if your last layer is a sigmoid
     #    or any other range. Adjust as needed.
     pred_mask_clamped = np.clip(pred_mask, 0.0, 1.0)
+    pred_mask_clamped = pred_mask_clamped > 0.1
     pred_mask_255 = (pred_mask_clamped * 255).astype(np.uint8)
 
     # PIL expects 2D (H, W) for mode='L', or (H, W, 3) for RGB, etc.

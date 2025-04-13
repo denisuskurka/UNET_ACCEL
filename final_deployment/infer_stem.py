@@ -70,7 +70,8 @@ def infer_stem(cropped_filepath, hw=False):
                 break
         data_float = np.fromfile("./data/result.bin", dtype=np.float32)
         data_float = data_float.reshape((128, 128))
-        return data_float
+        mask_thresholded = (data_float > 0).astype(np.float32)
+        return mask_thresholded
     else:
         custom_objects = {}
         _add_supported_quantized_objects(custom_objects)
