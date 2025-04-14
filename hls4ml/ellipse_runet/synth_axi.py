@@ -1,21 +1,12 @@
 import os
-import time
 import tensorflow as tf
-import numpy as np
 from tensorflow_model_optimization.sparsity.keras import strip_pruning
 from tensorflow_model_optimization.python.core.sparsity.keras import pruning_wrapper
 from qkeras.utils import _add_supported_quantized_objects
 import hls4ml
 from hls4ml.model.profiling import numerical
-import matplotlib.pyplot as plt
-import numpy as np
-from pathlib import Path
-import pprint
 import plotting
 from loss import bce_dice_loss, focal_tversky_loss
-from inference import load_and_preprocess_image, show_result, get_image_x_path
-from dataset import get_image_mask_paths, create_dataset
-from show_raw_result import show_raw_result
 
 # Force TensorFlow to use the CPU only.
 tf.config.set_visible_devices([], 'GPU')
