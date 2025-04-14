@@ -34,6 +34,8 @@ MODEL_PATH   = "ellipse_model.h5"           # path to your saved QKeras model
 INPUT_PIC    = "./data/data_cropped_final.png"
 OUTPUT_EXPORT = "./data/ellipse_infer.png"
 
+ellipse_model = None
+
 # ----------------------------
 # Utility Functions
 # ----------------------------
@@ -49,7 +51,20 @@ def load_and_preprocess_image(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH
     image = tf.image.resize(image, [height, width])
     return image
 
+def load_ellipse_model():
+    global ellipse_model
+    # 2) Load the QKeras model
+    custom_objects = {
+        "QConv2DBatchnorm": QConv2DBatchnorm,
+        "QActivation": QActivation,
+    }
+    with tf.keras.utils.custom_object_scope(custom_objects):
+        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+    print("Model loaded from:", MODEL_PATH)
+    ellipse_model = model
+
 def infer_ellipse():
+    global ellipse_model
     # 1) Load and preprocess the image
     image_path = INPUT_PIC
     image = load_and_preprocess_image(image_path)
@@ -61,18 +76,13 @@ def infer_ellipse():
     np.save("X_test.npy", image_batch.numpy())
     print("Saved preprocessed input to 'X_test.npy'.")
 
-    # 2) Load the QKeras model
-    custom_objects = {
-        "QConv2DBatchnorm": QConv2DBatchnorm,
-        "QActivation": QActivation,
-    }
-    with tf.keras.utils.custom_object_scope(custom_objects):
-        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-    print("Model loaded from:", MODEL_PATH)
+    # Load ellipse model into global var, ellipse_model
+    if(ellipse_model is None):
+        load_ellipse_model()
 
     # 3) Run inference
     print("Running inference...")
-    pred = model.predict(image_batch)
+    pred = ellipse_model.predict(image_batch)
     # Remove batch dimension => shape: (128, 128, 1) or (128, 128) if last layer is just a single channel
     pred_mask = np.squeeze(pred)
     print("Prediction shape:", pred_mask.shape)

@@ -10,6 +10,8 @@ from tensorflow_model_optimization.python.core.sparsity.keras import pruning_wra
 tf.config.set_visible_devices([], 'GPU')
 print("Running on CPU only.")
 
+stem_model = None
+
 IMAGE_HEIGHT = 128
 IMAGE_WIDTH  = 128
 
@@ -35,7 +37,19 @@ def load_and_preprocess_image(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH
     image = tf.image.resize(image, [height, width])
     return image
 
+def load_stem_model():
+    global stem_model
+    custom_objects = {}
+    _add_supported_quantized_objects(custom_objects)
+    custom_objects['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
+    model = tf.keras.models.load_model(
+        MODEL_PATH, custom_objects=custom_objects, compile=False
+    )
+    print("Model loaded from:", MODEL_PATH)
+    stem_model = model
+
 def infer_stem(cropped_filepath, hw=False):
+    global stem_model
     # Load cropped file
     image_path = cropped_filepath
     if image_path is None:
@@ -73,17 +87,13 @@ def infer_stem(cropped_filepath, hw=False):
         mask_thresholded = (data_float > 0).astype(np.float32)
         return mask_thresholded
     else:
-        custom_objects = {}
-        _add_supported_quantized_objects(custom_objects)
-        custom_objects['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
-        model = tf.keras.models.load_model(
-            MODEL_PATH, custom_objects=custom_objects, compile=False
-        )
-        print("Model loaded from:", MODEL_PATH)
+        # Load model into global var stem_model
+        if(stem_model is None):
+            load_stem_model()
 
         # Run inference
         print("Running inference...")
-        pred = model.predict(image_batch)
+        pred = stem_model.predict(image_batch)
         pred_mask = np.squeeze(pred)
 
         return pred_mask
