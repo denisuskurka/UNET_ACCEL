@@ -67,7 +67,7 @@ cfg_q['Board'] = 'fz5'
 hls_model_q = hls4ml.converters.keras_to_hls(cfg_q)
 hls_model_q.compile()
 
-predict_imgs(hls_model_q)
+#predict_imgs(hls_model_q)
 
 # Compare the numerical output of the two models.
 numerical(model=qmodel, hls_model=hls_model_q)
@@ -76,5 +76,6 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # ---------------------------
 # Synthesize!
 # ---------------------------
-#hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
-#hls_model_q.save ?
+hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
+
+predict_imgs(hls_model_q)
