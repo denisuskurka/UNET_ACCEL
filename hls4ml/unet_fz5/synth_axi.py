@@ -15,17 +15,23 @@ import plotting
 from loss import bce_dice_loss, focal_tversky_loss
 from inference import load_and_preprocess_image, show_result, get_image_x_path
 from dataset import get_image_mask_paths, create_dataset
+from show_raw_result import show_raw_result
+
+def predict_imgs(mdl, output="predicted"):
+    for i in range(0, 10):
+        image_path = get_image_x_path("./data/stem/images", i)
+        if image_path is None:
+            print(f"No image files found!.")
+        image_hdr = load_and_preprocess_image(image_path)
+        image = np.ascontiguousarray(image_hdr)
+
+        # Predict for all images!
+        pred = mdl.predict(image)
+        pred.tofile("./data/output/"+output+"_"+str(i)+".bin")
 
 # Force TensorFlow to use the CPU only.
 tf.config.set_visible_devices([], 'GPU')
 print("Running on CPU only.")
-
-# Load image
-image_path = get_image_x_path("./data/images", 1)
-if image_path is None:
-    print(f"No image files found!.")
-image_hdr = load_and_preprocess_image(image_path)
-image = np.ascontiguousarray(image_hdr)
 
 # Setup custom objects for loading the model
 co = {
@@ -36,8 +42,8 @@ os.environ['PATH'] = os.environ['XILINX_VIVADO'] + '/bin:' + os.environ['PATH']
 co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
 
 # Load and strip pruning from the quantized model.
-qmodel = tf.keras.models.load_model('best_model.h5', custom_objects=co)
-qmodel = strip_pruning(qmodel)
+qmodel = tf.keras.models.load_model('stem_model.h5', custom_objects=co)
+#qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
 hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model', backend='VivadoAccelerator')
@@ -61,6 +67,8 @@ cfg_q['Board'] = 'fz5'
 hls_model_q = hls4ml.converters.keras_to_hls(cfg_q)
 hls_model_q.compile()
 
+predict_imgs(hls_model_q)
+
 # Compare the numerical output of the two models.
 numerical(model=qmodel, hls_model=hls_model_q)
 hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_file="model.png")
@@ -68,7 +76,5 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # ---------------------------
 # Synthesize!
 # ---------------------------
-hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
-
-pred = hls_model_q.predict(image)
-pred.tofile("Y_ver.bin")
+#hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
+#hls_model_q.save ?
