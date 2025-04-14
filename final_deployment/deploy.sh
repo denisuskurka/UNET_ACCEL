@@ -7,7 +7,7 @@ ZIP_NAME="flask_app.zip"
 REMOTE_USER="petalinux"
 REMOTE_HOST="85.70.252.121"
 REMOTE_PORT=8112
-LOCAL_FILES="*.py dma_driver.c dummy.bin ellipse_model.h5 requirements.txt run_dma.sh start_dma_engine.sh stem_model.h5"
+LOCAL_FILES="*.py dma_driver.c dummy.bin ellipse_model.h5 requirements.txt run_dma.sh start_dma_engine.sh stem_model.h5 ellipse_regresor.h5"
 
 # --------------------------------------------------
 # 1) Package the application into a zip
