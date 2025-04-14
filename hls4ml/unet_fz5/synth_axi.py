@@ -43,7 +43,7 @@ co['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
 
 # Load and strip pruning from the quantized model.
 qmodel = tf.keras.models.load_model('stem_model.h5', custom_objects=co)
-#qmodel = strip_pruning(qmodel)
+qmodel = strip_pruning(qmodel)
 
 # Then the QKeras model
 hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model', backend='VivadoAccelerator')
