@@ -18,7 +18,7 @@ from dataset import get_image_mask_paths, create_dataset
 from show_raw_result import show_raw_result
 
 def predict_imgs(mdl, output="predicted"):
-    for i in range(0, 10):
+    for i in range(0, 2):
         image_path = get_image_x_path("./data/stem/images", i)
         if image_path is None:
             print(f"No image files found!.")
