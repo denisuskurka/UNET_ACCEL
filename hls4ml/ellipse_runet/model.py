@@ -1,124 +1,62 @@
 #!/usr/bin/env python
 """
-Full U-Net with QKeras layers (reduced version)
+Simple CNN to regress ellipse parameters from grayscale ultrasound input.
 
-This model implements a small U-Net architecture:
-  - One downsampling block (QConv2D + max pool)
-  - A bottleneck block
-  - One upsampling block (upsample + skip connection + QConv2D)
-  - A final 1×1 convolution producing a single-channel logit (no sigmoid).
+Predicts 5 values: (cx, cy, axis1, axis2, angle)
 
-All QKeras layers use:
-  - kernel_quantizer="quantized_bits(6,0,alpha=1)"
-  - bias_quantizer="quantized_bits(6,0,alpha=1)"
-  - activation= QActivation("quantized_relu(6)")
+Architecture:
+  - 3 Conv2D + MaxPool layers
+  - Flatten + Dense
+  - Output Dense with 5 values (no activation)
 
-Note: The number of filters in the convolution blocks is reduced for FPGA deployment.
+Optimized for minimal size and FPGA friendliness.
 """
 
 import tensorflow as tf
-from tensorflow.keras.layers import Input, MaxPooling2D, UpSampling2D, Concatenate, Conv2D
 from tensorflow.keras.models import Model
-from tensorflow.keras.regularizers import l1
-from qkeras import QConv2DBatchnorm, QActivation, QConv2D
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
 import numpy as np
+
 
 def build_model(HEIGHT, WIDTH):
     """
-    Builds a small UNet-like model with QKeras layers.
-    
-    Parameters:
-      HEIGHT, WIDTH: Dimensions of the input image (e.g., 128×128)
-      
-    Returns:
-      A Keras Model instance producing raw logits (no final sigmoid).
+    Build a compact CNN that regresses 5 ellipse parameters from grayscale input.
     """
-    # ---- Input ----
     input_shape = (HEIGHT, WIDTH, 1)
-    inputs = Input(shape=input_shape, name='cnn_input')
-    
-    # Helper function for a QConv2D + QActivation block
-    def qconv_block(x, filters, prefix):
-        x = QConv2D(
-            filters=filters,
-            kernel_size=(3, 3),
-            strides=(1, 1),
-            padding='same',
-            kernel_quantizer="quantized_bits(32,8,alpha=1)",
-            bias_quantizer="quantized_bits(32,8,alpha=1)",
-            kernel_initializer='lecun_uniform',
-            kernel_regularizer=l1(0.0000),
-            use_bias=True,
-            name=f'{prefix}_conv1'
-        )(x)
-        x = QActivation("quantized_relu(16,8)", name=f'{prefix}_act1')(x)
-        return x
+    inputs = Input(shape=input_shape, name='input_image')
 
-    # -------------------------------------------------------------------------
-    #                             Downsampling path
-    # -------------------------------------------------------------------------
-    # Block 1
-    down1 = qconv_block(inputs, filters=8, prefix='down1')
-    pool1 = MaxPooling2D(pool_size=(2, 2), name='pool1')(down1)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same', name='conv1')(inputs)
+    x = MaxPooling2D(pool_size=(2, 2), name='pool1')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same', name='conv2')(x)
+    x = MaxPooling2D(pool_size=(2, 2), name='pool2')(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='conv3')(x)
+    x = MaxPooling2D(pool_size=(2, 2), name='pool3')(x)
 
-    # Block 2
-    down2 = qconv_block(pool1, filters=4, prefix='down2')
-    pool2 = MaxPooling2D(pool_size=(2, 2), name='pool2')(down2)
-    
-    # -------------------------------------------------------------------------
-    #                                 Bottleneck
-    # -------------------------------------------------------------------------
-    bottleneck = qconv_block(pool2, filters=16, prefix='bottleneck')
-    
-    # -------------------------------------------------------------------------
-    #                             Upsampling path
-    # -------------------------------------------------------------------------
-    # Up block
-    up4 = UpSampling2D(size=(2, 2), name='up4')(bottleneck)
-    concat4 = Concatenate(name='concat4')([up4, down2])
-    up4_conv = qconv_block(concat4, filters=8, prefix='up4_conv')
-    up3 = UpSampling2D(size=(2, 2), name='up3')(up4_conv)
-    concat3 = Concatenate(name='concat5')([up3, down1])
-    up3_conv = qconv_block(concat3, filters=4, prefix='up3_conv')
-    up2_conv = qconv_block(up3_conv, filters=2, prefix='up2')
+    x = Flatten(name='flatten')(x)
+    x = Dense(64, activation='relu', name='fc1')(x)
+    x = Dense(32, activation='relu', name='fc2')(x)
 
-    # -------------------------------------------------------------------------
-    #                                Final Output
-    # -------------------------------------------------------------------------
-    # Produce 1 channel of logits (no sigmoid)
-    logits = QConv2D(
-        filters=1,
-        kernel_size=(1, 1),
-        strides=(1, 1),
-        padding='same',
-        kernel_quantizer="quantized_bits(32,8,alpha=1)",
-        bias_quantizer="quantized_bits(32,8,alpha=1)",
-        kernel_initializer='lecun_uniform',
-        kernel_regularizer=l1(0.0000),
-        use_bias=True,
-        activation=None,  # no activation => raw logits
-        name='output_conv'
-    )(up2_conv)
+    # Output: cx, cy, axis1, axis2, angle
+    outputs = Dense(5, name='ellipse_params')(x)
 
-    # Option 1: QKeras quantized sigmoid
-    outputs = QActivation("quantized_sigmoid(16,8)", name='output_sigmoid')(logits)
-
-    model = Model(inputs=inputs, outputs=outputs, name='unet_light')
+    model = Model(inputs=inputs, outputs=outputs, name='ellipse_regressor')
     model.summary()
-    
+
     return model
 
+
 if __name__ == "__main__":
-    # Example usage:
     HEIGHT = 128
     WIDTH = 128
     model = build_model(HEIGHT, WIDTH)
 
-    print("MODEL CHECK:")
+    print("\nMODEL CHECK:")
     for layer in model.layers:
         if layer.__class__.__name__ in ['Conv2D', 'Dense']:
-            w = layer.get_weights()[0]
-            layersize = np.prod(w.shape)
-            print("{}: {}".format(layer.name, layersize))  # 0 = weights, 1 = biases
-            if layersize > 4096:
-                print("Layer {} is too large ({}), are you sure you want to train?".format(layer.name, layersize))
+            weights = layer.get_weights()
+            if weights:
+                w = weights[0]
+                layersize = np.prod(w.shape)
+                print(f"{layer.name}: {layersize}")
+                if layersize > 4096:
+                    print(f"Layer {layer.name} is too large ({layersize}), are you sure you want to train?")
