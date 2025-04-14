@@ -73,7 +73,7 @@ def infer_stem(cropped_filepath, hw=False):
 
     if(hw):
         os.system('./run_dma.sh')
-        time.sleep(0.1)
+        time.sleep(1)
         count = 0
         while not os.path.exists("./data/result.bin"):
             print("Waiting for DMA...")
@@ -84,8 +84,8 @@ def infer_stem(cropped_filepath, hw=False):
                 break
         data_float = np.fromfile("./data/result.bin", dtype=np.float32)
         data_float = data_float.reshape((128, 128))
-        mask_thresholded = (data_float > 0).astype(np.float32)
-        return mask_thresholded
+        #mask_thresholded = (data_float > 0).astype(np.float32)
+        return data_float
     else:
         # Load model into global var stem_model
         if(stem_model is None):
