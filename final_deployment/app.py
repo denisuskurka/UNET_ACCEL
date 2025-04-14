@@ -165,24 +165,12 @@ def index():
                 if os.path.exists(ellipse_infer_png):
                     ellipse_inference_url = url_for('uploaded_file', filename="ellipse_infer.png")
 
-                # Fit ellipse
-                fit_ellipse()
-                ellipse_fitted_png = os.path.join(UPLOAD_FOLDER, "ellipse_fitted.png")
-                if os.path.exists(ellipse_fitted_png):
-                    ellipse_fitted_url = url_for('uploaded_file', filename="ellipse_fitted.png")
-
-                # Paint ellipse
-                paint_ellipse()
-                ellipse_final_png = os.path.join(UPLOAD_FOLDER, "final.png")
-                if os.path.exists(ellipse_final_png):
-                    ellipse_final_url = url_for('uploaded_file', filename="final.png")
-
                 # 7b) Paste the final (with ellipse) back into the bigger cropped image
                 #     => painted_in_cropped.png
                 painted_in_cropped_png = os.path.join(UPLOAD_FOLDER, PAINTED_IN_CROPPED)
                 paste_ellipse_back(
                     big_image_path=cropped_filepath,
-                    small_painted_path=ellipse_final_png,
+                    small_painted_path=ellipse_infer_png,
                     out_path=painted_in_cropped_png,
                     bbox=(xmin, ymin, xmax, ymax)
                 )
@@ -247,10 +235,6 @@ def index():
             if final_cropped_url else ''}
           {f'<div><p>Ellipse Inference</p><img src="{ellipse_inference_url}" style="max-width:200px; border:1px solid #ccc;" /></div>' 
             if ellipse_inference_url else ''}
-          {f'<div><p>Fitted Ellipse</p><img src="{ellipse_fitted_url}" style="max-width:200px; border:1px solid #ccc;" /></div>' 
-            if ellipse_fitted_url else ''}
-          {f'<div><p>Paint Ellipse</p><img src="{ellipse_final_url}" style="max-width:200px; border:1px solid #ccc;" /></div>' 
-            if ellipse_final_url else ''}
         </div>
       </body>
     </html>

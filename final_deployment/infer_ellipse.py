@@ -1,59 +1,52 @@
 #!/usr/bin/env python
 """
-A simple inference script for a QKeras model.
-This script:
-  • Loads one image from the images folder.
-  • Preprocesses it (grayscale, resized to 128×128).
-  • Exports the preprocessed image as 'X_test.npy'.
-  • Loads the quantized model (using a custom object scope to register QKeras layers)
-    with compile=False (to avoid loading the custom loss).
-  • Runs inference to get a baseline response.
-  • Exports the predicted mask as 'Y_baseline.npy'.
-  • Saves the predicted mask as a BMP ('ellipse_infer.bmp').
-  • Displays the input image and predicted mask using Matplotlib.
+Inference script for ellipse regression model with output upscaled to original resolution.
 """
 
 import os
 import tensorflow as tf
 import numpy as np
-from PIL import Image  # for saving BMP
+from PIL import Image
+import cv2
 
-# Import the needed QKeras layers for custom objects.
 from qkeras import QConv2DBatchnorm, QActivation
-
-# Force TensorFlow to use the CPU only
-#tf.config.set_visible_devices([], 'CPU')
-print("Running on CPU only.")
 
 # ----------------------------
 # Parameters
 # ----------------------------
 IMAGE_HEIGHT = 128
-IMAGE_WIDTH  = 128
-MODEL_PATH   = "ellipse_model.h5"           # path to your saved QKeras model
-INPUT_PIC    = "./data/data_cropped_final.png"
+IMAGE_WIDTH = 128
+MODEL_PATH = "ellipse_regresor.h5"
+INPUT_PIC = "./data/data_cropped_final.png"
 OUTPUT_EXPORT = "./data/ellipse_infer.png"
 
 ellipse_model = None
 
-# ----------------------------
-# Utility Functions
-# ----------------------------
+
 def load_and_preprocess_image(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH):
-    """
-    Loads an image file, decodes it as a grayscale image,
-    converts it to float32 in [0, 1] range, and resizes it.
-    """
     image = tf.io.read_file(image_path)
-    # Decode as BMP/PNG with 1 channel (grayscale)
     image = tf.image.decode_image(image, channels=1, expand_animations=False)
-    image = tf.image.convert_image_dtype(image, tf.float32)  # [0..1]
-    image = tf.image.resize(image, [height, width])
-    return image
+    image = tf.image.convert_image_dtype(image, tf.float32)
+    original_shape = tf.shape(image)[:2]
+    image_resized = tf.image.resize(image, [height, width])
+    return image, image_resized, original_shape
+
+
+def draw_ellipse_on_image(image_np, params, color=(0, 255, 0)):
+    img_uint8 = (image_np * 255).astype(np.uint8)
+    img_bgr = cv2.cvtColor(img_uint8, cv2.COLOR_GRAY2BGR)
+
+    cx, cy, axis1, axis2, angle = params
+    center = (int(cx), int(cy))
+    axes = (int(axis1), int(axis2))
+    angle = float(angle)
+
+    cv2.ellipse(img_bgr, center, axes, angle, 0, 360, color, 2)
+    return img_bgr
+
 
 def load_ellipse_model():
     global ellipse_model
-    # 2) Load the QKeras model
     custom_objects = {
         "QConv2DBatchnorm": QConv2DBatchnorm,
         "QActivation": QActivation,
@@ -63,45 +56,44 @@ def load_ellipse_model():
     print("Model loaded from:", MODEL_PATH)
     ellipse_model = model
 
+
 def infer_ellipse():
     global ellipse_model
-    # 1) Load and preprocess the image
-    image_path = INPUT_PIC
-    image = load_and_preprocess_image(image_path)
-    # shape: (128, 128, 1)
-    image_batch = tf.expand_dims(image, axis=0)  # shape: (1, 128, 128, 1)
-    print(f"Input image shape (model input): {image_batch.shape}")
 
-    # Save the preprocessed image as X_test.npy
+    # Load original + preprocessed image
+    original_image, image_resized, original_shape = load_and_preprocess_image(INPUT_PIC)
+    original_image_np = original_image.numpy().squeeze()
+    image_batch = tf.expand_dims(image_resized, axis=0)
+    print(f"Original image shape: {original_image_np.shape}")
+    print(f"Model input shape: {image_batch.shape}")
+
     np.save("X_test.npy", image_batch.numpy())
-    print("Saved preprocessed input to 'X_test.npy'.")
 
-    # Load ellipse model into global var, ellipse_model
-    if(ellipse_model is None):
+    if ellipse_model is None:
         load_ellipse_model()
 
-    # 3) Run inference
-    print("Running inference...")
+    # Predict ellipse parameters
     pred = ellipse_model.predict(image_batch)
-    # Remove batch dimension => shape: (128, 128, 1) or (128, 128) if last layer is just a single channel
-    pred_mask = np.squeeze(pred)
-    print("Prediction shape:", pred_mask.shape)
+    ellipse_params = np.squeeze(pred)
+    print("Predicted ellipse params:", ellipse_params)
+    np.save("Y_baseline.npy", ellipse_params)
 
-    # 4) Export the raw predicted mask as 'Y_baseline.npy'
-    np.save("Y_baseline.npy", pred_mask)
-    print("Saved predicted mask to 'Y_baseline.npy'.")
+    # Draw ellipse on resized image
+    image_resized_np = image_resized.numpy().squeeze()
+    image_with_ellipse = draw_ellipse_on_image(image_resized_np, ellipse_params)
 
-    # 5) Convert the mask to [0..255] and save as BMP
-    #    Typically, you might have values in [0..1] if your last layer is a sigmoid
-    #    or any other range. Adjust as needed.
-    pred_mask_clamped = np.clip(pred_mask, 0.0, 1.0)
-    pred_mask_clamped = pred_mask_clamped > 0.1
-    pred_mask_255 = (pred_mask_clamped * 255).astype(np.uint8)
+    # Upscale to original resolution
+    output_upscaled = cv2.resize(
+        image_with_ellipse,
+        (int(original_shape[1]), int(original_shape[0])),
+        interpolation=cv2.INTER_LINEAR
+    )
 
-    # PIL expects 2D (H, W) for mode='L', or (H, W, 3) for RGB, etc.
-    pred_img = Image.fromarray(pred_mask_255, mode='L')
-    pred_img.save(OUTPUT_EXPORT)
-    print(f"Saved predicted mask as BMP to '{OUTPUT_EXPORT}'.")
+    # Save as PNG
+    image_rgb = cv2.cvtColor(output_upscaled, cv2.COLOR_BGR2RGB)
+    Image.fromarray(image_rgb).save(OUTPUT_EXPORT)
+    print(f"Saved output image with ellipse to '{OUTPUT_EXPORT}'.")
+
 
 if __name__ == "__main__":
     infer_ellipse()
