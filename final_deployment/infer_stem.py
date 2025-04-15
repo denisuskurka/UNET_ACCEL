@@ -22,7 +22,7 @@ OUTPUT_EXPORT = "Y_baseline.npy"
 def encode(xi):
     return np.int32(round(xi * 2**24)) # note 2**10 = 2**(A-B)
 def decode(yi):
-    return yi * 2**-24
+    return yi * 2**-8
 encode_v = np.vectorize(encode) # to apply them element-wise
 decode_v = np.vectorize(decode)
 
@@ -59,17 +59,20 @@ def infer_stem(cropped_filepath, hw=False):
 
     # Load and preprocess the image => shape (H, W, 1), float32
     image = load_and_preprocess_image(image_path)
-    image1 = np.ascontiguousarray(image)
-    image1.tofile(RAW_EXPORT)
     # Expand batch dimension => (1, H, W, 1)
     image_batch = tf.expand_dims(image, axis=0)
 
-    #image_raw = image.numpy().astype(np.float32)  # shape (H, W, 1)
-    ## apply your vectorized encode
-    #image_fixed = encode_v(image_raw)  # shape (H, W, 1), int32
-    ## write out the integer data as raw bytes
-    #image_fixed.tofile(RAW_EXPORT)
-    ##image_raw.tofile(RAW_EXPORT)
+    image_raw = image_batch.numpy().astype(np.float32)  # shape (1, H, W, 1)
+    image_raw.ravel().astype(np.float32).tofile(RAW_EXPORT)
+
+    # Load model into global var stem_model
+    if(stem_model is None):
+        load_stem_model()
+
+    print(stem_model.input.dtype)
+    print(stem_model.output.dtype)
+    print("image_raw min/max:", image_raw.min(), image_raw.max())
+    print("encoded min/max:", encode_v(image_raw).min(), encode_v(image_raw).max())
 
     if(hw):
         os.system('./run_dma.sh')
@@ -83,14 +86,8 @@ def infer_stem(cropped_filepath, hw=False):
                 print("DMA FAILED!")
                 break
         data_float = np.fromfile("./data/result.bin", dtype=np.float32)
-        data_float = data_float.reshape((128, 128))
-        #mask_thresholded = (data_float > 0).astype(np.float32)
         return data_float
     else:
-        # Load model into global var stem_model
-        if(stem_model is None):
-            load_stem_model()
-
         # Run inference
         print("Running inference...")
         pred = stem_model.predict(image_batch)
