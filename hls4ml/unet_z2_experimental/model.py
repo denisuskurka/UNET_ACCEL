@@ -55,6 +55,9 @@ def build_model(HEIGHT, WIDTH):
         return x
 
     down1 = qconv_block(inputs, filters=4, prefix='down1')
+    pool1 = MaxPooling2D(pool_size=(2, 2), name='pool1')(down1)
+    up4 = UpSampling2D(size=(2, 2), name='up4')(pool1)
+    concat4 = Concatenate(name='concat4')([up4, down1])
     
     # Produce 1 channel of logits (no sigmoid)
     logits = QConv2D(
@@ -69,7 +72,7 @@ def build_model(HEIGHT, WIDTH):
         use_bias=True,
         activation=None,  # no activation => raw logits
         name='output_conv'
-    )(down1)
+    )(concat4)
 
     # Option 1: QKeras quantized sigmoid
     #outputs = tf.keras.layers.Activation("sigmoid", name='output_sigmoid')(logits)
