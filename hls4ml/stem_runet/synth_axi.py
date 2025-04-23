@@ -48,7 +48,7 @@ qmodel = strip_pruning(qmodel)
 # Then the QKeras model
 hls_config_q = hls4ml.utils.config_from_keras_model(qmodel, granularity='model', backend='VivadoAccelerator')
 hls_config_q['Model']['ReuseFactor'] = 2
-hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
+#hls_config_q['Model']['Precision'] = 'ap_fixed<32,8>'
 hls_config_q['Flows'] = ['vivadoaccelerator:fifo_depth_optimization']
 hls_config_q['Board'] = 'fz5'
 hls_config_q['Part'] = 'xczu5ev-sfvc784-1-i'
@@ -67,8 +67,6 @@ cfg_q['Board'] = 'fz5'
 hls_model_q = hls4ml.converters.keras_to_hls(cfg_q)
 hls_model_q.compile()
 
-predict_imgs(hls_model_q)
-
 # Compare the numerical output of the two models.
 numerical(model=qmodel, hls_model=hls_model_q)
 hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_file="model.png")
@@ -76,6 +74,6 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # ---------------------------
 # Synthesize!
 # ---------------------------
-#hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
+hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
 
-#predict_imgs(hls_model_q)
+predict_imgs(hls_model_q)
