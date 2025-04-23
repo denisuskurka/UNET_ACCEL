@@ -36,6 +36,8 @@ hls_config_q['Model']['Precision'] = 'ap_fixed<8,4>'
 #hls_config_q['LayerName']['output_softmax']['Strategy'] = 'Stable'
 plotting.print_dict(hls_config_q)
 
+hls4ml.model.optimizer.get_optimizer('vivado:fifo_depth_optimization').configure(profiling_fifo_depth=100_000)
+
 cfg_q = hls4ml.converters.create_config(backend='VivadoAccelerator')
 cfg_q['IOType'] = 'io_stream'  # Must set this if using CNNs!
 cfg_q['HLSConfig'] = hls_config_q
