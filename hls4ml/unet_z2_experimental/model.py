@@ -72,7 +72,7 @@ def build_model(HEIGHT, WIDTH):
     )(down1)
 
     # Option 1: QKeras quantized sigmoid
-    outputs = QActivation("quantized_sigmoid(16,8)", name='output_sigmoid')(logits)
+    outputs = tf.keras.layers.Activation("sigmoid", name='output_sigmoid')(logits)
 
     model = Model(inputs=inputs, outputs=outputs, name='unet_light')
     model.summary()
