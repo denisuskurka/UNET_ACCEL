@@ -43,8 +43,8 @@ def pruneFunction(layer):
             initial_sparsity=0.0,
             final_sparsity=0.9,
             begin_step=0,
-            end_step=2000,
-            frequency=50
+            end_step=20000,
+            frequency=200
         )
     }
     if isinstance(layer, tf.keras.layers.Dense) or isinstance(layer, tf.keras.layers.Conv2D):
