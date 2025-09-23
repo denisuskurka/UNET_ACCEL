@@ -41,7 +41,7 @@ export CALIB_IMAGES=1000
 # network parameters
 export INPUT_HEIGHT=256
 export INPUT_WIDTH=256
-export INPUT_SHAPE=?,${INPUT_HEIGHT},${INPUT_WIDTH}
+export INPUT_SHAPE=?,${INPUT_HEIGHT},${INPUT_WIDTH},1
 export INPUT_NODE=cnn_input
 export OUTPUT_NODE=output_conv/BiasAdd
 export NET_NAME=densenetx
