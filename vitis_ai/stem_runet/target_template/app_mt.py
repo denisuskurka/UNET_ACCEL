@@ -141,22 +141,6 @@ def app(image_dir,threads,model):
     fps = float(runTotal / timetotal)
     print("Throughput=%.2f fps, total frames = %.0f, time=%.4f seconds" %(fps, runTotal, timetotal))
 
-
-    ''' post-processing '''
-    classes = ['airplane','automobile','bird','cat','deer','dog','frog','horse','ship','truck']  
-    correct = 0
-    wrong = 0
-    print('output buffer length:',len(out_q))
-    for i in range(len(out_q)):
-        prediction = classes[out_q[i]]
-        ground_truth, _ = listimage[i].split('_',1)
-        if (ground_truth==prediction):
-            correct += 1
-        else:
-            wrong += 1
-    accuracy = correct/len(out_q)
-    print('Correct:%d, Wrong:%d, Accuracy:%.4f' %(correct,wrong,accuracy))
-
     return
 
 
