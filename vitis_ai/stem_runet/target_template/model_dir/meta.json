@@ -1,0 +1,5 @@
+{
+    "lib": "libvart-dpu-runner.so",
+    "filename": "./dpu_unetlight_0.elf",
+    "kernel": [ "unetlight_0" ]
+}

@@ -44,7 +44,7 @@ export INPUT_WIDTH=256
 export INPUT_SHAPE=?,${INPUT_HEIGHT},${INPUT_WIDTH},1
 export INPUT_NODE=cnn_input
 export OUTPUT_NODE=output_conv/BiasAdd
-export NET_NAME=densenetx
+export NET_NAME=unetlight
 
 # training parameters
 export EPOCHS=200
@@ -53,7 +53,8 @@ export LEARNRATE=0.001
 
 # target board
 export BOARD=KV260
-export ARCH=/opt/vitis_ai/compiler/arch/DPUCZDX8G/${BOARD}/arch.json
+export ARCH=/workspace/FZ5-UNET/vitis_ai/stem_runet/arch.json
+#export ARCH=/opt/vitis_ai/compiler/arch/DPUCZDX8G/${BOARD}/arch.json
 
 # DPU mode - best performance with DPU_MODE = normal
 export DPU_MODE=normal
