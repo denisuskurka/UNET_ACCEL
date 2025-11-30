@@ -70,13 +70,15 @@ def run_inference(processed_img):
     # Vytvoření bufferů
     inputData = [np.empty(input_ndim, dtype=np.float32, order="C")]
     outputData = [np.empty(output_ndim, dtype=np.float32, order="C")]
-    
+    print("vlozeni dat")
     # Vložení dat
     inputData[0][0, ...] = processed_img[0]
-    
+    print("spoustim DPU")
     # Spuštění DPU (synchronně pod zámkem)
     with dpu_lock:
+        print("job_id")
         job_id = dpu_runner.execute_async(inputData, outputData)
+        print("dpu_runner")
         dpu_runner.wait(job_id)
     
     return outputData[0][0]
