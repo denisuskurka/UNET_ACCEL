@@ -1,6 +1,6 @@
 #!/bin/bash
 
-conda activate vitis-ai-tensorflow2
+conda activate vitis-ai-tensorflow
 
 # folders
 export BUILD=./build
@@ -15,7 +15,7 @@ export QUANT=${BUILD}/quantize
 export TFCKPT_DIR=${BUILD}/tf_chkpt
 
 # make the necessary folders
-mkdir -p ${KERAS}
+#mkdir -p ${KERAS}
 mkdir -p ${LOG}
 
 # logs & results files
@@ -28,7 +28,7 @@ export EVAL_Q_LOG=eval_quant_graph.log
 export COMP_LOG=compile.log
 
 # Keras checkpoint file
-export K_MODEL=best_model.h5
+export K_MODEL=stem_unet.h5
 
 # TensorFlow files
 export FROZEN_GRAPH=frozen_graph.pb
@@ -44,7 +44,7 @@ export INPUT_WIDTH=256
 export INPUT_SHAPE=?,${INPUT_HEIGHT},${INPUT_WIDTH},1
 export INPUT_NODE=cnn_input
 export OUTPUT_NODE=output_conv/BiasAdd
-export NET_NAME=unetlight
+export NET_NAME=stem_unet
 
 # training parameters
 export EPOCHS=200
@@ -53,7 +53,7 @@ export LEARNRATE=0.001
 
 # target board
 export BOARD=KV260
-export ARCH=/workspace/FZ5-UNET/vitis_ai/stem_runet/arch.json
+export ARCH=/workspace/FZ5-UNET/vitis_ai/stem_full_model/arch.json
 #export ARCH=/opt/vitis_ai/compiler/arch/DPUCZDX8G/${BOARD}/arch.json
 
 # DPU mode - best performance with DPU_MODE = normal
