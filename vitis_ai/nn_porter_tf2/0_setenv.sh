@@ -1,6 +1,6 @@
 #!/bin/bash
 
-conda activate vitis-ai-tensorflow
+conda activate vitis-ai-tensorflow2
 
 # folders
 export BUILD=./build
@@ -8,7 +8,7 @@ export TARGET_TEMPLATE=./target_template
 export TARGET=${BUILD}/target
 export LOG=${BUILD}/logs
 export TB_LOG=${BUILD}/tb_logs
-export KERAS=${BUILD}/keras_model
+export KERAS=./
 export FREEZE=${BUILD}/freeze
 export COMPILE=${BUILD}/compile/
 export QUANT=${BUILD}/quantize
@@ -28,7 +28,7 @@ export EVAL_Q_LOG=eval_quant_graph.log
 export COMP_LOG=compile.log
 
 # Keras checkpoint file
-export K_MODEL=k_model.h5
+export K_MODEL=best_model.h5
 
 # TensorFlow files
 export FROZEN_GRAPH=frozen_graph.pb

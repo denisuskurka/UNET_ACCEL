@@ -1,6 +1,6 @@
 #!/bin/bash
 
-conda activate vitis-ai-tensorflow
+conda activate vitis-ai-tensorflow2
 
 # folders
 export BUILD=./build
@@ -44,7 +44,7 @@ export INPUT_WIDTH=256
 export INPUT_SHAPE=?,${INPUT_HEIGHT},${INPUT_WIDTH},1
 export INPUT_NODE=cnn_input
 export OUTPUT_NODE=output_conv/BiasAdd
-export NET_NAME=unetlight
+export NET_NAME=unet_full
 
 # training parameters
 export EPOCHS=200

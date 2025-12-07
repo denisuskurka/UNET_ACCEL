@@ -19,31 +19,10 @@ echo "-----------------------------------------"
 echo "MAKE TARGET STARTED.."
 echo "-----------------------------------------"
 
-
 # remove previous results
 rm -rf ${TARGET}
 
-# copy target template to build folder
-cp -ar ${TARGET_TEMPLATE} ${BUILD}
-mv ${BUILD}/target_template ${TARGET}
-echo "  Copied target template to target folder"
-
-
 # copy elf to target folder
-cp ${COMPILE}/*.xmodel ${TARGET}/model_dir/.
+mkdir ${TARGET}/
+cp ${COMPILE}/*.xmodel ${TARGET}/
 echo "  Copied xmodel file(s) to target folder"
-
-
-mkdir -p ${TARGET}/images
-
-
-python tf_gen_images.py  \
-    --dataset=test \
-    --image_dir=${TARGET}/images \
-    --max_images=10000
-echo "  Copied images to target folder"
-
-echo "-----------------------------------------"
-echo "MAKE TARGET COMPLETED"
-echo "-----------------------------------------"
-

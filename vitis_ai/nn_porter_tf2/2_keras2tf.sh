@@ -17,47 +17,43 @@
 
 TF_CPP_MIN_LOG_LEVEL=3
 
-
 # convert keras model to frozen graph
+# Note: The updated python script now handles both Checkpoint creation AND Freezing
 keras_2_tf() {
   python keras_2_tf.py \
     --keras_hdf5 ${KERAS}/${K_MODEL} \
     --tf_ckpt    ${TFCKPT_DIR}/${TFCKPT}  
 }
 
-
-freeze() {
-  freeze_graph \
-    --input_meta_graph  ${TFCKPT_DIR}/${TFCKPT}.meta \
-    --input_checkpoint  ${TFCKPT_DIR}/${TFCKPT} \
-    --output_graph      ${FREEZE}/${FROZEN_GRAPH} \
-    --output_node_names ${OUTPUT_NODE} \
-    --input_binary      true
-}
-
 echo "-----------------------------------------"
-echo "CONVERTING KERAS MODEL TO TF CHECKPOINT.."
+echo "CONVERTING KERAS MODEL TO TF CHECKPOINT & FREEZING.."
 echo "-----------------------------------------"
 
+# Prepare Checkpoint Directory
 rm -rf ${TFCKPT_DIR}
 mkdir -p ${TFCKPT_DIR}
+
+# Run the Python conversion (which now also freezes the graph)
 keras_2_tf 2>&1 | tee ${LOG}/${KERAS_LOG}
 
-
 echo "-----------------------------------------"
-echo "FINISHED KERAS MODEL CONVERSION"
-echo "-----------------------------------------"
-
-
-echo "-----------------------------------------"
-echo "FREEZING THE GRAPH.."
+echo "ORGANIZING OUTPUT FILES.."
 echo "-----------------------------------------"
 
+# Prepare Freeze Directory (Where the next scripts expect the .pb file)
 rm -rf ${FREEZE}
 mkdir -p ${FREEZE}
-freeze 2>&1 | tee ${LOG}/${FREEZE_LOG}
+
+# The Python script creates 'frozen_graph.pb' inside TFCKPT_DIR.
+# We move it to the defined ${FREEZE} directory and rename it to ${FROZEN_GRAPH}
+# to maintain compatibility with 3_quantize.sh
+if [ -f "${TFCKPT_DIR}/frozen_graph.pb" ]; then
+    mv "${TFCKPT_DIR}/frozen_graph.pb" "${FREEZE}/${FROZEN_GRAPH}"
+    echo "Success: Frozen graph moved to ${FREEZE}/${FROZEN_GRAPH}"
+else
+    echo "Error: frozen_graph.pb was not found in ${TFCKPT_DIR}. Check keras_2_tf.py output."
+fi
 
 echo "-----------------------------------------"
-echo "FREEZE GRAPH COMPLETED"
+echo "PROCESS COMPLETED"
 echo "-----------------------------------------"
-
