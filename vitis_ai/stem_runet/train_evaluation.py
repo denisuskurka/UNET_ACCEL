@@ -72,7 +72,6 @@ def predict_images(model_path, input_dir, output_dir, height, width):
         
         # Threshold to binary [0, 1]
         binary_mask = (probs > 0.5).astype(np.uint8)
-        binary_mask = probs
         
         # Remove batch and channel dims for saving: (1, H, W, 1) -> (H, W)
         pred_mask = binary_mask[0, ..., 0]
