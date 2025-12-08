@@ -47,9 +47,9 @@ export OUTPUT_NODE=output_conv/BiasAdd
 export NET_NAME=stem_runet
 
 # training parameters
-export EPOCHS=200
-export BATCHSIZE=8
-export LEARNRATE=0.001
+export EPOCHS=1000
+export BATCHSIZE=16
+export LEARNRATE=0.0001
 
 # target board
 export BOARD=KV260

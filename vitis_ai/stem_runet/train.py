@@ -6,8 +6,7 @@ Features:
   - Uses either BCE+Dice or Focal Tversky loss from 'loss.py'
   - Displays the first training image & mask
   - Plots training/validation loss over epochs
-  - Saves the best model to 'best_model.h5'
-  - Saves a final stripped/pruned model to 'quantized_cnn_model_final.h5'
+  - Saves the best model to '<FINAL_NAME>.h5'
 
 Requirements:
   • 'dataset' module providing get_image_mask_paths(...) and create_dataset(...)
@@ -108,7 +107,7 @@ def train(input_height,input_width,batchsize,learnrate,epochs,keras_hdf5,tboard)
     # Callbacks
     # ----------------------------
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
-        "best_model.h5",
+        FINAL_NAME,
         monitor="val_loss",
         save_best_only=True,
         verbose=1
@@ -145,12 +144,6 @@ def train(input_height,input_width,batchsize,learnrate,epochs,keras_hdf5,tboard)
     end = time.time()
 
     print(f"\nTraining completed in {(end - start) / 60.0:.2f} minutes.")
-
-    # ----------------------------
-    # Strip pruning (if used), then Save the Final Model
-    # ----------------------------
-    model.save(FINAL_NAME)
-    print(f"Saved final stripped model -> {FINAL_NAME}")
 
     # ----------------------------
     # Plot training history
