@@ -17,7 +17,14 @@
 
 # train, evaluate and save trained keras model
 train() {
-  python train.py
+  python train.py \
+    --input_height ${INPUT_HEIGHT} \
+    --input_width  ${INPUT_WIDTH} \
+    --epochs       ${EPOCHS} \
+    --learnrate    ${LEARNRATE} \
+    --batchsize    ${BATCHSIZE} \
+    --tboard       ${TB_LOG} \
+    --keras_hdf5   ${KERAS}/${K_MODEL}
 }
 
 echo "-----------------------------------------"

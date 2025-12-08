@@ -191,11 +191,11 @@ def run_main():
     ap = argparse.ArgumentParser()
     ap.add_argument('-ih', '--input_height',
                     type=int,
-                    default='32',
+                    default='256',
     	            help='Input image height in pixels.')
     ap.add_argument('-iw', '--input_width',
                     type=int,
-                    default='32',
+                    default='256',
     	            help='Input image width in pixels.')
     ap.add_argument('-b', '--batchsize',
                     type=int,
@@ -211,8 +211,8 @@ def run_main():
     	            help='optimizer initial learning rate. Must be floating-point value. Default is 0.001')
     ap.add_argument('-kh', '--keras_hdf5',
                     type=str,
-                    default='./model.hdf5',
-    	            help='path of Keras HDF5 file - must include file name. Default is ./model.hdf5')
+                    default='./stem_unet.h5',
+    	            help='path of Keras HDF5 file - must include file name. Default is ./stem_unet.h5')
     ap.add_argument('-tb', '--tboard',
                     type=str,
                     default='./tb_logs',
