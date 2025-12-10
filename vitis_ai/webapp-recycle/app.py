@@ -5,14 +5,18 @@ import numpy as np
 from flask import Flask, request, url_for, send_from_directory
 from PIL import Image
 
+# Utils
 from util import crop_image
 from rects_from_masks import find_best_rectangle, create_binary_rectangle_mask
 from crop_rect_from_original import scale_mask_to_original, get_mask_bounding_box, crop_image_by_box
-from infer_ellipse import infer_ellipse
-from infer_stem import infer_stem
-from fit_ellipse import fit_ellipse
-from paint_ellipse import paint_ellipse
 from paste_ellipse_back import paste_ellipse_back 
+
+# Model Imports
+# We alias them to switch between them easily
+from infer_stem import infer_stem
+from infer_ellipse import infer_ellipse as infer_ellipse_unet
+from infer_ellipse_regress import infer_ellipse as infer_ellipse_reg
+
 import tensorflow as tf
 
 app = Flask(__name__)
@@ -31,8 +35,6 @@ RECT_MASK_BMP = "data_rectangle_mask.bmp"
 FINAL_CROPPED_PNG = "data_cropped_final.png"
 PAINTED_IN_CROPPED = "painted_in_cropped.png"
 
-ELLIPSE_INFER_BMP = "ellipse_infer.bmp"  # infer_ellipse script writes here by default
-
 @app.route('/data/<filename>')
 def uploaded_file(filename):
     """Serve files from the upload folder."""
@@ -46,10 +48,12 @@ def index():
     rectangle_mask_url = None
     final_cropped_url = None
     ellipse_inference_url = None
-    ellipse_fitted_url = None
-    ellipse_final_url = None
     painted_in_cropped_url = None
     filename = None
+    
+    # Defaults for the form
+    selected_infer_mode = "sw"
+    selected_ellipse_mode = "unet"
 
     if request.method == 'POST':
         # ------------------------------------------------------------------
@@ -79,10 +83,14 @@ def index():
             return "Error: Only BMP files are accepted."
 
         # ------------------------------------------------------------------
-        # 3) Check if user selected HW or SW
+        # 3) Get User Options
         # ------------------------------------------------------------------
-        infer_mode = request.form.get("infer_mode", "sw")  # 'sw' or 'hw'
-        is_hw = (infer_mode == "hw")
+        # Mode: SW (TensorFlow) or HW (DPU)
+        selected_infer_mode = request.form.get("infer_mode", "sw")
+        is_hw = (selected_infer_mode == "hw")
+
+        # Ellipse Model: U-Net (Segmentation) or Regressor (Parameters)
+        selected_ellipse_mode = request.form.get("ellipse_mode", "unet")
 
         # Save the uploaded file
         file_path = os.path.join(UPLOAD_FOLDER, INPUT_BMP)
@@ -101,13 +109,14 @@ def index():
         # ------------------------------------------------------------------
         # 5) Run STEM inference (SW/HW)
         # ------------------------------------------------------------------
+        print(f"[INFO] Running STEM Inference (Mode: {selected_infer_mode.upper()})")
         arr_out = infer_stem(cropped_filepath, hw=is_hw)
+        
         if arr_out is None:
             return "infer_stem returned no result."
 
+        # Reshape and Normalize for display
         arr_out = arr_out.reshape(IMG_SIZE)
-
-        # Convert [0..1] to [0..255] for display
         arr_out_clamped = np.clip(arr_out, 0.0, 1.0) * 255.0
         arr_out_clamped = arr_out_clamped.astype(np.uint8)
 
@@ -153,20 +162,32 @@ def index():
                 final_crop.save(final_cropped_path)
                 final_cropped_url = url_for('uploaded_file', filename=FINAL_CROPPED_PNG)
 
-                # 7a) Ellipse inference
+                # Ensure filename matches what the inference scripts expect
                 final_cropped_const = os.path.join(UPLOAD_FOLDER, "data_cropped_final.png")
-                if final_cropped_path != final_cropped_const:
-                    os.replace(final_cropped_path, final_cropped_const)
+                # (The save above might have already saved it there, but strict check:)
+                if os.path.abspath(final_cropped_path) != os.path.abspath(final_cropped_const):
+                    shutil.copy(final_cropped_path, final_cropped_const)
 
-                infer_ellipse()
+                # --------------------------------------------------------------
+                # 7a) Ellipse Inference (Selection Logic)
+                # --------------------------------------------------------------
+                print(f"[INFO] Running Ellipse Inference using: {selected_ellipse_mode.upper()} (Mode: {selected_infer_mode.upper()})")
+                
+                if selected_ellipse_mode == "unet":
+                    # Use Segmentation U-Net
+                    infer_ellipse_unet(hw=is_hw)
+                else:
+                    # Use Parameter Regressor
+                    infer_ellipse_reg(hw=is_hw)
 
-                # ellipse_infer.png
+                # Result is saved to "ellipse_infer.png" by both scripts
                 ellipse_infer_png = os.path.join(UPLOAD_FOLDER, "ellipse_infer.png")
                 if os.path.exists(ellipse_infer_png):
                     ellipse_inference_url = url_for('uploaded_file', filename="ellipse_infer.png")
 
+                # --------------------------------------------------------------
                 # 7b) Paste the final (with ellipse) back into the bigger cropped image
-                #     => painted_in_cropped.png
+                # --------------------------------------------------------------
                 painted_in_cropped_png = os.path.join(UPLOAD_FOLDER, PAINTED_IN_CROPPED)
                 paste_ellipse_back(
                     big_image_path=cropped_filepath,
@@ -183,62 +204,105 @@ def index():
     # -----------------------
     # Construct final HTML
     # -----------------------
+    # Helper for checked attributes
+    sw_checked = "checked" if selected_infer_mode == "sw" else ""
+    hw_checked = "checked" if selected_infer_mode == "hw" else ""
+    unet_checked = "checked" if selected_ellipse_mode == "unet" else ""
+    reg_checked = "checked" if selected_ellipse_mode == "regress" else ""
+
     return f'''
     <html>
       <head>
-        <title>STEM Inference</title>
+        <title>Vitis AI Inference App</title>
+        <style>
+            body {{ margin:20px; font-family:sans-serif; }}
+            .control-group {{ margin-bottom: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; width: fit-content; }}
+            .control-group h3 {{ margin-top: 0; font-size: 16px; color: #555; }}
+            label {{ margin-right: 15px; cursor: pointer; }}
+            input[type=submit] {{ padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }}
+            input[type=submit]:hover {{ background-color: #0056b3; }}
+        </style>
       </head>
-      <body style="margin:20px;font-family:sans-serif;">
-        <h1>STEM Model Inference</h1>
+      <body>
+        <h1>Vitis AI Inference Pipeline</h1>
 
-        <!-- 1) The same menu (SW/HW + file upload) -->
         <form method="POST" action="/" enctype="multipart/form-data">
-          <label>
-            <input type="radio" name="infer_mode" value="sw" checked />
-            STEM UNET in SW
-          </label>
-          <label style="margin-left: 20px;">
-            <input type="radio" name="infer_mode" value="hw" />
-            STEM UNET in HW
-          </label>
-          <br/><br/>
-          <input type="file" name="file" accept=".bmp"/>
-          <input type="submit" value="Upload"/>
+          
+          <div style="display:flex; gap: 20px;">
+              <div class="control-group">
+                <h3>1. Execution Mode</h3>
+                <label>
+                    <input type="radio" name="infer_mode" value="sw" {sw_checked} /> 
+                    Software (TensorFlow .h5)
+                </label>
+                <label>
+                    <input type="radio" name="infer_mode" value="hw" {hw_checked} /> 
+                    Hardware (DPU .xmodel)
+                </label>
+              </div>
+
+              <div class="control-group">
+                <h3>2. Ellipse Strategy</h3>
+                <label>
+                    <input type="radio" name="ellipse_mode" value="unet" {unet_checked} /> 
+                    Segmentation (U-Net)
+                </label>
+                <label>
+                    <input type="radio" name="ellipse_mode" value="regress" {reg_checked} /> 
+                    Regression (Parameters)
+                </label>
+              </div>
+          </div>
+
+          <br/>
+          <div class="control-group">
+            <h3>3. Upload Input</h3>
+            <input type="file" name="file" accept=".bmp" required />
+            <br/><br/>
+            <input type="submit" value="Run Inference"/>
+          </div>
         </form>
 
-        <!-- 2) The new two-column layout: left = original cropped, right = final painted -->
         <hr/>
+        
         <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-top:20px;">
           <div>
-            <h2>Cropped Input</h2>
+            <h2>Input (Cropped)</h2>
             {f'<img src="{uploaded_file_url}" style="max-width:400px;border:1px solid #ccc;"/>' 
-              if uploaded_file_url else ''}
+              if uploaded_file_url else '<p style="color:#888;">Waiting for upload...</p>'}
           </div>
           <div>
-            <h2>Final Painted Ellipse</h2>
-            {f'<img src="{painted_in_cropped_url}" style="max-width:400px;border:1px solid #ccc;"/>' 
-              if painted_in_cropped_url else ''}
+            <h2>Final Result</h2>
+            {f'<img src="{painted_in_cropped_url}" style="max-width:400px;border:2px solid #28a745;"/>' 
+              if painted_in_cropped_url else '<p style="color:#888;">Result will appear here.</p>'}
           </div>
         </div>
 
-        <!-- 3) Separator line -->
         <hr style="margin:40px 0;"/>
 
-        <!-- 4) Debug pipeline images -->
-        <h2>Debug Pipeline</h2>
+        <h2>Pipeline Debug View</h2>
         <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:20px;">
-          {f'<div><p>STEM Output</p><img src="{result_image_url}" style="max-width:200px; border:1px solid #ccc;" /></div>' 
-            if result_image_url else ''}
-          {f'<div><p>Rect Mask</p><img src="{rectangle_mask_url}" style="max-width:200px; border:1px solid #ccc;" /></div>' 
-            if rectangle_mask_url else ''}
-          {f'<div><p>Final Crop</p><img src="{final_cropped_url}" style="max-width:200px; border:1px solid #ccc;" /></div>' 
-            if final_cropped_url else ''}
-          {f'<div><p>Ellipse Inference</p><img src="{ellipse_inference_url}" style="max-width:200px; border:1px solid #ccc;" /></div>' 
-            if ellipse_inference_url else ''}
+          <div style="text-align:center;">
+             <p><b>Step 1:</b> STEM Output</p>
+             {f'<img src="{result_image_url}" style="max-width:200px; border:1px solid #ccc;" />' if result_image_url else '-'}
+          </div>
+          <div style="text-align:center;">
+             <p><b>Step 2:</b> ROI Mask</p>
+             {f'<img src="{rectangle_mask_url}" style="max-width:200px; border:1px solid #ccc;" />' if rectangle_mask_url else '-'}
+          </div>
+          <div style="text-align:center;">
+             <p><b>Step 3:</b> Final ROI Crop</p>
+             {f'<img src="{final_cropped_url}" style="max-width:200px; border:1px solid #ccc;" />' if final_cropped_url else '-'}
+          </div>
+          <div style="text-align:center;">
+             <p><b>Step 4:</b> Ellipse Inference</p>
+             {f'<img src="{ellipse_inference_url}" style="max-width:200px; border:1px solid #ccc;" />' if ellipse_inference_url else '-'}
+          </div>
         </div>
       </body>
     </html>
     '''
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    # Important: debug=False for VART/DPU stability
+    app.run(debug=False, host="0.0.0.0", port=5000)

@@ -60,7 +60,7 @@ export NET_NAME=ellipse_regressor
 # ---------------------------------------------------------
 
 # training parameters
-export EPOCHS=1000
+export EPOCHS=100
 export BATCHSIZE=8
 export LEARNRATE=0.001
 
