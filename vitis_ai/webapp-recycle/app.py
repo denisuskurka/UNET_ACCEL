@@ -20,7 +20,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = './data'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-IMG_SIZE = (128, 128)
+IMG_SIZE = (256, 256)
 INPUT_BMP = "data.bmp"
 CROPPED_PNG = "data_cropped.png"
 STEM_INPUT_PNG = "data_stem_input.png"

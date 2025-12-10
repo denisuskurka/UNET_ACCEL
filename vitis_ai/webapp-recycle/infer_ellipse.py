@@ -26,12 +26,12 @@ if tf.__version__.startswith('1.'):
 # ----------------------------
 # Parameters
 # ----------------------------
-IMAGE_HEIGHT = 128
-IMAGE_WIDTH = 128
+IMAGE_HEIGHT = 256
+IMAGE_WIDTH = 256
 
 # Note: Filenames suggest segmentation (U-Net)
-SW_MODEL_PATH = "ellipse_unet128.h5"
-HW_MODEL_PATH = "ellipse_unet128.xmodel"
+SW_MODEL_PATH = "ellipse_runet256.h5"
+HW_MODEL_PATH = "ellipse_runet256.xmodel"
 
 INPUT_PIC = "./data/data_cropped_final.png"
 OUTPUT_EXPORT = "./data/ellipse_infer.png"

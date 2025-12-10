@@ -20,11 +20,11 @@ if tf.__version__.startswith('1.'):
     print(f"[INFO] TensorFlow 1.x detected. Eager execution enabled.")
 
 # --- CONFIGURATION ---
-IMAGE_HEIGHT = 128
-IMAGE_WIDTH  = 128
+IMAGE_HEIGHT = 256
+IMAGE_WIDTH  = 256
 
-SW_MODEL_PATH = "stem_unet128.h5"
-HW_MODEL_PATH = "stem_unet128.xmodel"
+SW_MODEL_PATH = "stem_runet256.h5"
+HW_MODEL_PATH = "stem_runet256.xmodel"
 
 # --- GLOBALS ---
 stem_model_sw = None    # For TensorFlow (SW)
