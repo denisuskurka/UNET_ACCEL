@@ -71,7 +71,8 @@ def predict_images(model_path, input_dir, output_dir, height, width):
         probs = sigmoid(logits)
         
         # Threshold to binary [0, 1]
-        binary_mask = (probs > 0.5).astype(np.uint8)
+        binary_mask = (probs > 0.6).astype(np.uint8)
+        binary_mask = probs
         
         # Remove batch and channel dims for saving: (1, H, W, 1) -> (H, W)
         pred_mask = binary_mask[0, ..., 0]
@@ -102,9 +103,9 @@ def run_main():
                         help='Directory containing input images')
     parser.add_argument('-o', '--output_dir', type=str, default='./predictions',
                         help='Directory to save predictions')
-    parser.add_argument('-ih', '--input_height', type=int, default=256,
+    parser.add_argument('-ih', '--input_height', type=int, default=128,
                         help='Model input height (must match training)')
-    parser.add_argument('-iw', '--input_width', type=int, default=256,
+    parser.add_argument('-iw', '--input_width', type=int, default=128,
                         help='Model input width (must match training)')
 
     args = parser.parse_args()

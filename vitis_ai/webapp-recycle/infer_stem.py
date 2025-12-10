@@ -1,96 +1,158 @@
 #!/usr/bin/env python
 import time
 import os
+
+# 1. Force TensorFlow to use the CPU only (Works in both TF1 and TF2)
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import tensorflow as tf
 import numpy as np
-from qkeras.utils import _add_supported_quantized_objects
-from tensorflow_model_optimization.python.core.sparsity.keras import pruning_wrapper
+import cv2
 
-# Force TensorFlow to use the CPU only (optional).
-tf.config.set_visible_devices([], 'GPU')
-print("Running on CPU only.")
+# Vitis AI imports
+import xir
+import vart
 
-stem_model = None
+# 2. Enable Eager Execution for TF 1.x compatibility
+# This ensures .numpy() and other TF2-style commands work in the Vitis AI environment
+if tf.__version__.startswith('1.'):
+    tf.compat.v1.enable_eager_execution()
+    print(f"[INFO] TensorFlow 1.x detected. Eager execution enabled.")
 
+# --- CONFIGURATION ---
 IMAGE_HEIGHT = 128
 IMAGE_WIDTH  = 128
 
-MODEL_PATH    = "runet_stem_model.h5"
-RAW_EXPORT    = "./data/data_stem_input.bin"
-OUTPUT_EXPORT = "Y_baseline.npy"
+SW_MODEL_PATH = "stem_unet128.h5"
+HW_MODEL_PATH = "stem_unet128.xmodel"
 
-def encode(xi):
-    return np.int32(round(xi * 2**24)) # note 2**10 = 2**(A-B)
-def decode(yi):
-    return yi * 2**-8
-encode_v = np.vectorize(encode) # to apply them element-wise
-decode_v = np.vectorize(decode)
+# --- GLOBALS ---
+stem_model_sw = None    # For TensorFlow (SW)
+dpu_runner = None       # For Vitis AI (HW)
+g_graph = None          # XIR Graph
+dpu_input_ndim = None
+dpu_output_ndim = None
 
-def load_and_preprocess_image(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH):
+def load_stem_model(hw=False):
     """
-    Loads an image file, decodes it as a grayscale image,
-    converts it to float32 in [0, 1] range, and resizes it.
+    Loads the appropriate model (SW or HW) into global variables.
+    """
+    global stem_model_sw, dpu_runner, g_graph, dpu_input_ndim, dpu_output_ndim
+
+    if hw:
+        if dpu_runner is not None:
+            return # Already loaded
+
+        print(f"[INFO] Loading HW Model: {HW_MODEL_PATH}")
+        # Deserialize the xmodel
+        g_graph = xir.Graph.deserialize(HW_MODEL_PATH)
+        
+        # Find the DPU subgraph
+        root_subgraph = g_graph.get_root_subgraph()
+        child_subgraphs = root_subgraph.toposort_child_subgraph()
+        dpu_subgraph = [cs for cs in child_subgraphs 
+                        if cs.has_attr("device") and cs.get_attr("device").upper() == "DPU"][0]
+
+        # Create the DPU runner
+        dpu_runner = vart.Runner.create_runner(dpu_subgraph, "run")
+
+        # Get tensor shapes for I/O
+        inputTensors = dpu_runner.get_input_tensors()
+        outputTensors = dpu_runner.get_output_tensors()
+        
+        dpu_input_ndim = tuple(inputTensors[0].dims)   # e.g., (1, 128, 128, 1)
+        dpu_output_ndim = tuple(outputTensors[0].dims) # e.g., (1, 128, 128, 1)
+
+        print(f"[INFO] DPU Model Loaded. Input: {dpu_input_ndim}, Output: {dpu_output_ndim}")
+
+    else:
+        if stem_model_sw is not None:
+            return # Already loaded
+
+        print(f"[INFO] Loading SW Model: {SW_MODEL_PATH}")
+        # compile=False allows loading without needing custom optimizers/losses
+        stem_model_sw = tf.keras.models.load_model(
+            SW_MODEL_PATH, compile=False
+        )
+        print("[INFO] SW Model loaded.")
+
+def load_and_preprocess_image_tf(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH):
+    """
+    TF-based preprocessing for SW mode.
     """
     image = tf.io.read_file(image_path)
-    image = tf.image.decode_png(image, channels=1)  # grayscale
+    image = tf.image.decode_png(image, channels=1)
     image = tf.image.convert_image_dtype(image, tf.float32)
     image = tf.image.resize(image, [height, width])
     return image
 
-def load_stem_model():
-    global stem_model
-    custom_objects = {}
-    _add_supported_quantized_objects(custom_objects)
-    custom_objects['PruneLowMagnitude'] = pruning_wrapper.PruneLowMagnitude
-    model = tf.keras.models.load_model(
-        MODEL_PATH, custom_objects=custom_objects, compile=False
-    )
-    print("Model loaded from:", MODEL_PATH)
-    stem_model = model
+def preprocess_image_dpu(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH):
+    """
+    OpenCV/Numpy-based preprocessing for HW/DPU mode.
+    Returns a numpy array with shape (1, H, W, 1) and dtype float32.
+    """
+    # Read grayscale
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        raise ValueError(f"Could not read image: {image_path}")
+    
+    # Resize
+    img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
+    
+    # Normalize to 0-1 (Float32)
+    img = img.astype(np.float32) / 255.0
+    
+    # Reshape to (1, H, W, 1)
+    img = img.reshape((1, height, width, 1))
+    
+    return img
 
 def infer_stem(cropped_filepath, hw=False):
-    global stem_model
-    # Load cropped file
-    image_path = cropped_filepath
-    if image_path is None:
-        print(f"No image files found in {cropped_filepath}.")
-        return
-    print("Using image:", image_path)
+    """
+    Runs inference using either TF (CPU) or Vitis AI (DPU).
+    """
+    if cropped_filepath is None or not os.path.exists(cropped_filepath):
+        print(f"[ERROR] Image not found: {cropped_filepath}")
+        return None
 
-    # Load and preprocess the image => shape (H, W, 1), float32
-    image = load_and_preprocess_image(image_path)
-    # Expand batch dimension => (1, H, W, 1)
-    image_batch = tf.expand_dims(image, axis=0)
+    # Ensure the correct model is loaded
+    load_stem_model(hw=hw)
 
-    image_raw = image_batch.numpy().astype(np.float32)  # shape (1, H, W, 1)
-    image_raw.ravel().astype(np.float32).tofile(RAW_EXPORT)
+    if hw:
+        # --- HW / DPU INFERENCE ---
+        # 1. Preprocess using OpenCV (avoid TF graph overhead for HW run)
+        input_data = preprocess_image_dpu(cropped_filepath)
+        
+        # 2. Prepare I/O buffers (Must be C-Contiguous for VART)
+        # We assume batch size 1 for single image inference
+        inputData = [np.empty(dpu_input_ndim, dtype=np.float32, order="C")]
+        outputData = [np.empty(dpu_output_ndim, dtype=np.float32, order="C")]
+        
+        # 3. Copy data into input buffer
+        inputData[0][0, ...] = input_data[0]
+        
+        # 4. Execute Async on DPU
+        job_id = dpu_runner.execute_async(inputData, outputData)
+        dpu_runner.wait(job_id)
+        
+        # 5. Extract result
+        # outputData[0] is (Batch, H, W, C).
+        pred_mask = outputData[0][0]
+        
+        # Squeeze to (H, W) or (H, W, 1) depending on caller expectation
+        pred_mask = np.squeeze(pred_mask)
+        
+        return pred_mask
 
-    # Load model into global var stem_model
-    if(stem_model is None):
-        load_stem_model()
-
-    print(stem_model.input.dtype)
-    print(stem_model.output.dtype)
-    print("image_raw min/max:", image_raw.min(), image_raw.max())
-    print("encoded min/max:", encode_v(image_raw).min(), encode_v(image_raw).max())
-
-    if(hw):
-        os.system('./run_dma.sh')
-        time.sleep(1)
-        count = 0
-        while not os.path.exists("./data/result.bin"):
-            print("Waiting for DMA...")
-            time.sleep(1)
-            count = count + 1
-            if count > 10:
-                print("DMA FAILED!")
-                break
-        data_float = np.fromfile("./data/result.bin", dtype=np.float32)
-        return data_float
     else:
-        # Run inference
-        print("Running inference...")
-        pred = stem_model.predict(image_batch)
+        # --- SW / TENSORFLOW INFERENCE ---
+        # 1. Preprocess
+        image = load_and_preprocess_image_tf(cropped_filepath)
+        image_batch = tf.expand_dims(image, axis=0) # (1, H, W, 1)
+        
+        # 2. Predict
+        # print("[INFO] Running on CPU (TF)...")
+        pred = stem_model_sw.predict(image_batch)
         pred_mask = np.squeeze(pred)
 
         return pred_mask
