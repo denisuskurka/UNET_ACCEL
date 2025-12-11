@@ -2,32 +2,23 @@
 """
 Inference script for Ellipse U-Net (Segmentation).
 Extracts ellipse parameters from the predicted mask using OpenCV.
-Compatible with Vitis AI TensorFlow 1.x environments.
+Compatible with Vitis AI (SW and HW/DPU).
 """
 
 import os
-
-# 1. Force CPU usage (Universal fix)
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-import tensorflow as tf
+import time
 import numpy as np
 import cv2
-from PIL import Image
 
-# Vitis AI imports
+# Vitis AI imports (Safe to import globally)
 import xir
 import vart
-
-# 2. Enable Eager Execution for TF 1.x compatibility
-if tf.__version__.startswith('1.'):
-    tf.compat.v1.enable_eager_execution()
 
 # ----------------------------
 # Parameters
 # ----------------------------
 IMAGE_HEIGHT = 256
-IMAGE_WIDTH = 256
+IMAGE_WIDTH  = 256
 
 # Note: Filenames suggest segmentation (U-Net)
 SW_MODEL_PATH = "ellipse_runet256.h5"
@@ -45,6 +36,8 @@ g_graph = None
 dpu_input_ndim = None
 dpu_output_ndim = None
 
+# Global placeholder for TensorFlow
+tf = None
 
 def fit_ellipse_cv2(mask_prob):
     """
@@ -79,7 +72,6 @@ def fit_ellipse_cv2(mask_prob):
     # We return axes as semi-axes (radius), so divide width/height by 2
     return cx, cy, w/2, h/2, angle
 
-
 def draw_ellipse_on_image(image_np, params, color=(0, 255, 0)):
     """
     Draws the ellipse on the image.
@@ -92,7 +84,7 @@ def draw_ellipse_on_image(image_np, params, color=(0, 255, 0)):
     if len(img_uint8.shape) == 2:
         img_bgr = cv2.cvtColor(img_uint8, cv2.COLOR_GRAY2BGR)
     else:
-        img_bgr = img_uint8
+        img_bgr = img_uint8.copy()
 
     cx, cy, axis1, axis2, angle = params
     center = (int(cx), int(cy))
@@ -102,15 +94,16 @@ def draw_ellipse_on_image(image_np, params, color=(0, 255, 0)):
     cv2.ellipse(img_bgr, center, axes, angle, 0, 360, color, 2)
     return img_bgr
 
-
 def load_and_preprocess_image_tf(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH):
+    if tf is None:
+        raise ImportError("TensorFlow not loaded. Call load_ellipse_model(hw=False) first.")
+
     image = tf.io.read_file(image_path)
     image = tf.image.decode_image(image, channels=1, expand_animations=False)
     image = tf.image.convert_image_dtype(image, tf.float32)
     original_shape = tf.shape(image)[:2]
     image_resized = tf.image.resize(image, [height, width])
     return image, image_resized, original_shape
-
 
 def preprocess_image_dpu(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH):
     img_gray = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -124,31 +117,84 @@ def preprocess_image_dpu(image_path, height=IMAGE_HEIGHT, width=IMAGE_WIDTH):
     
     return input_data, original_shape, img_gray
 
-
 def load_ellipse_model(hw=False):
-    global ellipse_model_sw, dpu_runner, g_graph, dpu_input_ndim, dpu_output_ndim
+    global ellipse_model_sw, dpu_runner, g_graph, dpu_input_ndim, dpu_output_ndim, tf
 
     if hw:
+        # --- HW MODE (Vitis AI) ---
         if dpu_runner is not None: return
 
         print(f"[INFO] Loading HW Model: {HW_MODEL_PATH}")
+        if not os.path.exists(HW_MODEL_PATH):
+             print(f"[ERROR] xmodel file not found: {HW_MODEL_PATH}")
+             return
+
         g_graph = xir.Graph.deserialize(HW_MODEL_PATH)
         root_subgraph = g_graph.get_root_subgraph()
         child_subgraphs = root_subgraph.toposort_child_subgraph()
+        
         dpu_subgraph = [cs for cs in child_subgraphs 
                         if cs.has_attr("device") and cs.get_attr("device").upper() == "DPU"][0]
 
         dpu_runner = vart.Runner.create_runner(dpu_subgraph, "run")
         inputTensors = dpu_runner.get_input_tensors()
         outputTensors = dpu_runner.get_output_tensors()
+        
         dpu_input_ndim = tuple(inputTensors[0].dims)
         dpu_output_ndim = tuple(outputTensors[0].dims)
         print(f"[INFO] DPU Model Loaded.")
-    else:
-        if ellipse_model_sw is not None: return
-        print(f"[INFO] Loading SW Model: {SW_MODEL_PATH}")
-        ellipse_model_sw = tf.keras.models.load_model(SW_MODEL_PATH, compile=False)
 
+    else:
+        # --- SW MODE (TensorFlow) ---
+        if ellipse_model_sw is not None: return
+
+        print("[INFO] HW=False detected. Importing TensorFlow...")
+
+        # 1. Force CPU
+        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+        
+        # 2. Lazy Import
+        import tensorflow as _tf
+        tf = _tf
+
+        if tf.__version__.startswith('1.'):
+            tf.compat.v1.enable_eager_execution()
+
+        # --- COMPATIBILITY PATCH START ---
+        # Wrappers to ignore the 'dtype' argument causing crashes on older TF
+        
+        class PatchedVarianceScaling(tf.keras.initializers.VarianceScaling):
+            def __init__(self, **kwargs):
+                if 'dtype' in kwargs: kwargs.pop('dtype')
+                super().__init__(**kwargs)
+
+        class PatchedZeros(tf.keras.initializers.Zeros):
+            def __init__(self, **kwargs):
+                super().__init__()
+
+        class PatchedOnes(tf.keras.initializers.Ones):
+            def __init__(self, **kwargs):
+                super().__init__()
+
+        class PatchedGlorotUniform(tf.keras.initializers.GlorotUniform):
+            def __init__(self, **kwargs):
+                if 'dtype' in kwargs: kwargs.pop('dtype')
+                super().__init__(**kwargs)
+
+        custom_objects = {
+            'VarianceScaling': PatchedVarianceScaling,
+            'Zeros': PatchedZeros,
+            'Ones': PatchedOnes,
+            'GlorotUniform': PatchedGlorotUniform
+        }
+        # --- COMPATIBILITY PATCH END ---
+
+        print(f"[INFO] Loading SW Model: {SW_MODEL_PATH}")
+        ellipse_model_sw = tf.keras.models.load_model(
+            SW_MODEL_PATH, 
+            compile=False,
+            custom_objects=custom_objects
+        )
 
 def infer_ellipse(hw=False):
     load_ellipse_model(hw=hw)
@@ -191,8 +237,6 @@ def infer_ellipse(hw=False):
     # -----------------------------
     # POST-PROCESSING
     # -----------------------------
-    
-    # CRITICAL FIX: Extract params from the mask using OpenCV
     print(f"[INFO] Mask shape: {raw_mask.shape}. Fitting ellipse...")
     ellipse_params = fit_ellipse_cv2(raw_mask)
     
