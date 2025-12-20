@@ -14,8 +14,6 @@ A concise repository for accelerating a U-Net segmentation model on FPGA platfor
 ---
 
 ## Quick prerequisites
-Warning! The prerequisites depend on the used project and should be installed based on the project vitis_ai and hls4ml independently, not simultaneously.
-
 - Python 3.7+ (virtualenv recommended)
 - PyTorch, Brevitas, OpenCV, NumPy, Matplotlib (see `fz5_full_model/requirements.txt` and subfolder requirements)
 - Vivado / Vitis / Vitis-AI toolchains for FPGA/DPU builds (where applicable)
