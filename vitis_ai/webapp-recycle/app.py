@@ -215,15 +215,38 @@ def index():
       <head>
         <title>Vitis AI Inference App</title>
         <style>
-            body {{ margin:20px; font-family:sans-serif; }}
+            body {{ margin:20px; font-family:sans-serif; position: relative; }}
             .control-group {{ margin-bottom: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; width: fit-content; }}
             .control-group h3 {{ margin-top: 0; font-size: 16px; color: #555; }}
             label {{ margin-right: 15px; cursor: pointer; }}
             input[type=submit] {{ padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }}
             input[type=submit]:hover {{ background-color: #0056b3; }}
+            
+            /* Logo Container Styling */
+            .logo-container {{
+                position: absolute;
+                top: 10px;
+                right: 20px;
+                display: flex;
+                gap: 20px;
+                align-items: center;
+                background: white;
+                padding: 10px;
+                border-radius: 8px;
+            }}
+            .logo-container img {{
+                height: 60px; /* Adjust height as needed */
+                width: auto;
+            }}
         </style>
       </head>
       <body>
+        
+        <div class="logo-container">
+            <img src="./data/evropa_logo.png" alt="European Union Logo">
+            <img src="./data/npo_logo.png" alt="Narodni plan obnovy Logo">
+        </div>
+
         <h1>Vitis AI Inference Pipeline</h1>
 
         <form method="POST" action="/" enctype="multipart/form-data">
