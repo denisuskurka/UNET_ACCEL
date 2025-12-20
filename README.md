@@ -2,8 +2,6 @@
 
 ![EU sponsorship](evropa_logo.png) ![NPO sponsorship](npo_logo.png)
 
-**Author:** Denis Kurka
-
 A concise repository for accelerating a U-Net segmentation model on FPGA platforms. This project contains two main, fully-working flows and several experimental/archived efforts for reference and comparison.
 
 ## Project layout (short)
