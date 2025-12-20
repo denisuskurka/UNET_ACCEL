@@ -1,3 +1,10 @@
+﻿import os
+
+# File: Path to the saved model
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import torch
 import cv2
@@ -105,3 +112,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

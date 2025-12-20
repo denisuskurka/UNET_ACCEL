@@ -1,3 +1,10 @@
+﻿import torch
+
+# File: split_unet.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import torch
 from torch.nn import BatchNorm1d
 from torch.nn import BatchNorm2d
@@ -71,3 +78,4 @@ if __name__ == "__main__":
     inp = torch.randn(1,1,128,128)
     out = model(inp)
     print("In:", inp.shape, "Out:", out.shape)
+

@@ -1,3 +1,10 @@
+﻿import os
+
+# File: Utils
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import time
 import shutil
@@ -336,3 +343,4 @@ def index():
 if __name__ == '__main__':
     # Important: debug=False for VART/DPU stability
     app.run(debug=False, host="0.0.0.0", port=5000)
+

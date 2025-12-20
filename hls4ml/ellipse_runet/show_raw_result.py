@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
+# File: show_raw_result.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 import os
 import numpy as np
@@ -12,7 +17,7 @@ def show_raw_result(
     filename="result.png"
 ):
     """
-    Load a 128×128 float32 binary file, threshold it at zero, and:
+    Load a 128ﾃ・28 float32 binary file, threshold it at zero, and:
       - Show only the left (raw) image if only_left=True
       - Otherwise, show side-by-side raw image (left) and thresholded mask (right)
       - Optionally save to disk if save=True and outdir is provided
@@ -24,7 +29,7 @@ def show_raw_result(
     :param filename: Name for the saved figure file
     """
 
-    # 1) Load file as float32 and reshape to 128×128
+    # 1) Load file as float32 and reshape to 128ﾃ・28
     data_float = np.fromfile(path, dtype=np.float32)
     data_float = data_float.reshape((128, 128))
 
@@ -75,3 +80,4 @@ if __name__ == "__main__":
     # show_raw_result("./data_stem_input.bin", only_left=True)
     # show_raw_result("./data_stem_input.bin", only_left=False, save=True, outdir="outputs")
     show_raw_result("./data_stem_input.bin", only_left=False, save=True, outdir="outputs")
+

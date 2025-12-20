@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Full U-Net with QKeras layers (reduced version)
 
@@ -6,7 +11,7 @@ This model implements a small U-Net architecture:
   - One downsampling block (QConv2D + max pool)
   - A bottleneck block
   - One upsampling block (upsample + skip connection + QConv2D)
-  - A final 1×1 convolution producing a single-channel logit (no sigmoid).
+  - A final 1ﾃ・ convolution producing a single-channel logit (no sigmoid).
 
 All QKeras layers use:
   - kernel_quantizer="quantized_bits(6,0,alpha=1)"
@@ -28,7 +33,7 @@ def build_model(HEIGHT, WIDTH):
     Builds a small UNet-like model with QKeras layers.
     
     Parameters:
-      HEIGHT, WIDTH: Dimensions of the input image (e.g., 128×128)
+      HEIGHT, WIDTH: Dimensions of the input image (e.g., 128ﾃ・28)
       
     Returns:
       A Keras Model instance producing raw logits (no final sigmoid).
@@ -97,3 +102,4 @@ if __name__ == "__main__":
             print("{}: {}".format(layer.name, layersize))  # 0 = weights, 1 = biases
             if layersize > 4096:
                 print("Layer {} is too large ({}), are you sure you want to train?".format(layer.name, layersize))
+

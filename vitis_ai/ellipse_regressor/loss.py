@@ -1,3 +1,10 @@
+﻿import tensorflow as tf
+
+# File: ----------------------------
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import tensorflow as tf
 
 # ----------------------------
@@ -88,3 +95,4 @@ def dice_coefficient(y_true, y_pred, smooth=1e-6):
     union = tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + smooth
     dice_score = (2.0 * intersection + smooth) / union
     return dice_score
+

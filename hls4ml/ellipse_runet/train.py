@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 train.py - Training script for QKeras ellipse regressor with optional pruning.
 
@@ -198,3 +203,4 @@ def doWeights(a_model):
 
 if PRUNING:
     doWeights(model)
+

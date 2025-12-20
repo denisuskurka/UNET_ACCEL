@@ -1,3 +1,10 @@
+﻿import os
+
+# File: Path to the saved model
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import sys
 import torch
@@ -78,3 +85,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     run_inference(image_path)
+

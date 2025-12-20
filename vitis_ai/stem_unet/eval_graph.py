@@ -1,3 +1,10 @@
+﻿import sys
+
+# File: reduce TensorFlow messages in console
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import sys
 import os
 import argparse
@@ -125,3 +132,4 @@ def main():
 
 if __name__ ==  "__main__":
     main()
+

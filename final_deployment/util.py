@@ -1,3 +1,10 @@
+﻿import math
+
+# File: Example margins: (top, bottom, left, right)
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import math
 
 # Example margins: (top, bottom, left, right)
@@ -15,12 +22,12 @@ def crop_image(image, margin=CROP_MARGIN):
       2) A 4-tuple of the form (top, bottom, left, right).
 
     For Pillow images, the crop box is (left, upper, right, lower).
-    We convert (top, bottom, left, right) into Pillow’s (left, upper, right, lower).
+    We convert (top, bottom, left, right) into Pillow窶冱 (left, upper, right, lower).
 
     Returns the cropped image. If the margins are too large (width or height <= 0),
     it returns the original image.
     """
-    # Pillow’s Image.size -> (width, height)
+    # Pillow窶冱 Image.size -> (width, height)
     w, h = image.size
 
     # Parse the margin parameter
@@ -49,3 +56,4 @@ def crop_image(image, margin=CROP_MARGIN):
 
     # Pillow crop expects (left, upper, right, lower)
     return image.crop((new_left, new_top, new_right, new_bottom))
+

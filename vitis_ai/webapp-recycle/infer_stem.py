@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: --- Vitis AI imports ---
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import time
 import os
 import sys
@@ -163,3 +168,4 @@ def infer_stem(cropped_filepath, hw=False):
         pred = stem_model_sw.predict(image_batch)
         pred_mask = np.squeeze(pred)
         return pred_mask
+

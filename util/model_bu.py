@@ -1,3 +1,10 @@
+﻿import torch
+
+# File: Example quant modules (must exist in your codebase):
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import torch
 import torch.nn.functional as F
 from torch.nn import BatchNorm2d, Module, ModuleList, MaxPool2d
@@ -280,3 +287,4 @@ if __name__ == "__main__":
 
     print("Input shape: ", test_input.shape)
     print("Output shape:", output.shape)
+

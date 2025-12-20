@@ -1,3 +1,10 @@
+﻿'''
+
+# File: 
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 '''
  Copyright 2020 Xilinx Inc.
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -125,3 +132,4 @@ def run_main():
 
 if __name__ == '__main__':
     run_main()
+

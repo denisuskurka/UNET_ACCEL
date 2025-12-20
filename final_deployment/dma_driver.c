@@ -1,3 +1,12 @@
+﻿#include <stdio.h>
+
+/*
+ * File: include <stdio.h>
+ * Author: Denis Kurka
+ * Year: 2025
+ * License: CC0
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -146,3 +155,4 @@ int main() {
 
     return 0;
 }
+

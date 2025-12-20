@@ -1,3 +1,10 @@
+﻿import itertools
+
+# File: confusion matrix code from Maurizio
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import itertools
 
 import matplotlib.pyplot as plt
@@ -87,3 +94,4 @@ def print_dict(d, indent=0):
             print_dict(value, indent + 1)
         else:
             print(':' + ' ' * (20 - len(key) - 2 * indent) + str(value))
+

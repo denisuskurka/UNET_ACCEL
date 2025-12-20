@@ -1,3 +1,10 @@
+﻿import paddle
+
+# File: Define transformations for the dataset
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import paddle
 import paddle.nn as nn
 import paddle.vision.transforms as T
@@ -68,3 +75,4 @@ paddle.jit.save(
     path='resnet50_cifar10/model',
     input_spec=[paddle.static.InputSpec(shape=[None, 3, 32, 32], dtype='float32')]
 )
+

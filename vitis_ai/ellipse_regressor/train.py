@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: 
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 train.py - Training script for Ellipse Regression.
 

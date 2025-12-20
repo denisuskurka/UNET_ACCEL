@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: 
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 predict.py - Load a trained U-Net model and generate masks for all images in a folder.
 
@@ -120,3 +125,4 @@ def run_main():
 
 if __name__ == "__main__":
     run_main()
+

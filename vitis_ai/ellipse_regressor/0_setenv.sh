@@ -1,4 +1,9 @@
-#!/bin/bash
+﻿#!/bin/bash
+# File: folders
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 conda activate vitis-ai-tensorflow
 

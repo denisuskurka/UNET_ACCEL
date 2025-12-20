@@ -1,4 +1,9 @@
-#!/bin/bash
+﻿#!/bin/bash
+# File: Copyright 2020 Xilinx Inc.
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # Copyright 2020 Xilinx Inc.
 # 
@@ -60,4 +65,5 @@ freeze 2>&1 | tee ${LOG}/${FREEZE_LOG}
 echo "-----------------------------------------"
 echo "FREEZE GRAPH COMPLETED"
 echo "-----------------------------------------"
+
 

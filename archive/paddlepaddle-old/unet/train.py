@@ -1,3 +1,10 @@
+﻿# train.py
+)
+# File: train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 # train.py
 import paddle
 import paddle.nn as nn

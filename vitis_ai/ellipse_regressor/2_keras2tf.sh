@@ -1,4 +1,9 @@
-#!/bin/bash
+﻿#!/bin/bash
+# File: convert keras model to frozen graph
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 TF_CPP_MIN_LOG_LEVEL=3
 
@@ -38,3 +43,4 @@ fi
 echo "-----------------------------------------"
 echo "PROCESS COMPLETED"
 echo "-----------------------------------------"
+

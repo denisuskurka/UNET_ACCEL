@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Ellipse Regression Model (Lightweight CNN) for 256x256 Input
 
@@ -105,3 +110,4 @@ if __name__ == "__main__":
                 print(f"[WARN] Layer {layer.name} is quite large ({layersize} params).")
             else:
                 print(f"[OK] Layer {layer.name}: {layersize} params")
+

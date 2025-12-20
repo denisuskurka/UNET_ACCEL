@@ -1,4 +1,9 @@
-#!/bin/bash
+﻿#!/bin/bash
+# File: Copyright 2020 Xilinx Inc.
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # Copyright 2020 Xilinx Inc.
 
@@ -25,3 +30,4 @@ eval_graph ${QUANT} quantize_eval_model.pb 2>&1 | tee ${LOG}/${EVAL_Q_LOG}
 echo "-----------------------------------------"
 echo "EVALUATION COMPLETED"
 echo "-----------------------------------------"
+

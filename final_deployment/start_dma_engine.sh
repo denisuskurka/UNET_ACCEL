@@ -1,4 +1,9 @@
-#!/bin/bash
+﻿#!/bin/bash
+# File: Name of the driver process
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # Name of the driver process
 DRIVER_NAME="dma_driver"
@@ -16,3 +21,4 @@ else
   nohup sudo ./$DRIVER_NAME > dma_driver.log 2>&1 &
   echo "Started $DRIVER_NAME in background (logs in dma_driver.log)."
 fi
+

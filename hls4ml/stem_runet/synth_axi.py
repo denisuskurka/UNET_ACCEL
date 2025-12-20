@@ -1,3 +1,10 @@
+﻿import os
+
+# File: synth_axi.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import time
 import tensorflow as tf
@@ -77,3 +84,4 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
 
 predict_imgs(hls_model_q)
+

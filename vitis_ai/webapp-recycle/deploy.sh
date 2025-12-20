@@ -1,4 +1,9 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
+# File: --------------------------------------------------
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # --------------------------------------------------
 # Configuration
@@ -72,3 +77,4 @@ echo "   sudo ./start_dma_engine.sh"
 echo "   Hint: you can kill it with the same cmd."
 echo "Run the application with:"
 echo "   python app.py"
+

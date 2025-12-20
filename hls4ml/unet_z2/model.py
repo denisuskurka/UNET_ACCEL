@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Full U-Net with QKeras layers
 
@@ -6,14 +11,14 @@ This model implements a standard U-Net architecture:
   - Four downsampling blocks (each two QConv2D layers + max pool)
   - A bottleneck with two QConv2D layers
   - Four upsampling blocks (each upsample + concatenate skip + two QConv2D)
-  - A final 1×1 convolution producing a 1-channel output with a sigmoid activation
+  - A final 1ﾃ・ convolution producing a 1-channel output with a sigmoid activation
 
 All QKeras layers use:
   - kernel_quantizer="quantized_bits(6,0,alpha=1)"
   - bias_quantizer="quantized_bits(6,0,alpha=1)"
   - activation= QActivation("quantized_relu(6)")
 
-Note: The number of filters in the convolution blocks is scaled down (16→32→64→128→256)
+Note: The number of filters in the convolution blocks is scaled down (16竊・2竊・4竊・28竊・56)
 to be more suitable for FPGA deployment, but this is still a "full" 4-level U-Net design.
 """
 
@@ -25,10 +30,10 @@ from qkeras import QConv2DBatchnorm, QActivation
 
 def build_model(HEIGHT, WIDTH):
     """
-    Builds a U-Net–like model with QKeras layers.
+    Builds a U-Net窶斗ike model with QKeras layers.
     
     Parameters:
-      HEIGHT, WIDTH: Dimensions of the input image (e.g., 128×128)
+      HEIGHT, WIDTH: Dimensions of the input image (e.g., 128ﾃ・28)
       
     Returns:
       A Keras Model instance.
@@ -130,3 +135,4 @@ if __name__ == "__main__":
     HEIGHT = 128
     WIDTH = 128
     model = build_model(HEIGHT, WIDTH)
+

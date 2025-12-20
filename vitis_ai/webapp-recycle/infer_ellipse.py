@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: 
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Inference script for Ellipse U-Net (Segmentation).
 Extracts ellipse parameters from the predicted mask using OpenCV.
@@ -259,3 +264,4 @@ def infer_ellipse(hw=False):
 
 if __name__ == "__main__":
     infer_ellipse(hw=False)
+

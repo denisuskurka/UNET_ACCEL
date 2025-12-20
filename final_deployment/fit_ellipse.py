@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: scikit-image for regionprops and drawing
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 import cv2
 import numpy as np
@@ -152,3 +157,4 @@ def fit_ellipse():
 
 if __name__ == "__main__":
     fit_ellipse()
+

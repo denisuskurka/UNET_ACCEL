@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: Force TensorFlow to use CPU (optional)
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import tensorflow as tf
 import numpy as np
@@ -110,3 +115,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

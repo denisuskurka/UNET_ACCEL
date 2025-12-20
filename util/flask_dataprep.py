@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
+# File: flask_dataprep.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 flask_dataprep.py
 
@@ -359,22 +364,22 @@ def main():
     )
     parser.add_argument(
         "-a", "--drawn_folder",
-        default="/home/komaro/デスクトップ/Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data/anezka/",
+        default="/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data/anezka/",
         help="Path to folder containing labeled images with '-drawn' in the filename."
     )
     parser.add_argument(
         "-b", "--original_folder",
-        default="/home/komaro/デスクトップ/Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data_no_label/",
+        default="/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data_no_label/",
         help="Path to folder containing unlabeled/original images."
     )
     parser.add_argument(
         "-c", "--masks_folder",
-        default="/home/komaro/デスクトップ/Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data_masks/",
+        default="/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data_masks/",
         help="Path to output folder for generated masks."
     )
     parser.add_argument(
         "-d", "--originals_folder",
-        default="/home/komaro/デスクトップ/Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data_originals/",
+        default="/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/notebooks/FZ5-UNET/SN/new_raw_data_originals/",
         help="Path to output folder for cropped originals."
     )
     parser.add_argument(
@@ -443,3 +448,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

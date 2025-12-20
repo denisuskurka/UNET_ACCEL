@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: inference.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import tensorflow as tf
 import numpy as np
@@ -138,7 +143,7 @@ def main():
     pred_mask = np.squeeze(pred)
     print("Prediction shape:", pred_mask.shape)
 
-    print("SW pred_mask stats — min:", pred_mask.min(), "max:", pred_mask.max(), "mean:", pred_mask.mean())
+    print("SW pred_mask stats 窶・min:", pred_mask.min(), "max:", pred_mask.max(), "mean:", pred_mask.mean())
 
     plt.hist(pred_mask.flatten(), bins=50)
     plt.title("Histogram of software output")
@@ -156,3 +161,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -1,3 +1,10 @@
+﻿# File: train.py
+
+# File: File: train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 # File: train.py
 
 import os
@@ -236,3 +243,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

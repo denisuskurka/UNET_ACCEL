@@ -1,3 +1,10 @@
+﻿import os
+
+# File: dataset.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import random
 from PIL import Image
@@ -117,3 +124,4 @@ class RealSegDataset(Dataset):
         # mask_tensor = (mask_tensor > 0.5).float()
 
         return image_tensor, mask_tensor
+

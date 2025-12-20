@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 train.py - A minimal training script for your reduced QKeras-based U-Net model for segmentation.
 
@@ -11,9 +16,9 @@ Features:
   - Saves a final stripped/pruned model to 'quantized_cnn_model_final.h5'
 
 Requirements:
-  • 'dataset' module providing get_image_mask_paths(...) and create_dataset(...)
-  • 'model' module providing build_model(...)
-  • 'loss.py' module containing bce_dice_loss, dice_loss, focal_tversky_loss
+  窶｢ 'dataset' module providing get_image_mask_paths(...) and create_dataset(...)
+  窶｢ 'model' module providing build_model(...)
+  窶｢ 'loss.py' module containing bce_dice_loss, dice_loss, focal_tversky_loss
 """
 
 import os
@@ -239,3 +244,4 @@ def doWeights(a_model):
 
 if PRUNING:
     doWeights(model)
+

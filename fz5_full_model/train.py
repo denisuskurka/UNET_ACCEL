@@ -1,3 +1,10 @@
+﻿import os
+
+# File: train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import shutil
 import torch
@@ -22,8 +29,8 @@ EARLY_STOP_PATIENCE = 100
 SAVE_BEST_MODEL_PATH = "best_unet_weights.pth"
 
 # Paths to your data
-IMAGES_DIR = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/images"
-MASKS_DIR = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/masks"
+IMAGES_DIR = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/data/images"
+MASKS_DIR = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/data/masks"
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
@@ -253,3 +260,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

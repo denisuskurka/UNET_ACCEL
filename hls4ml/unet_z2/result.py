@@ -1,7 +1,12 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
+# File: 
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 This script loads the hardware output stored in 'y_hw.npy',
-analyzes its shape, reshapes it into an image (assuming a 128×128 output),
+analyzes its shape, reshapes it into an image (assuming a 128ﾃ・28 output),
 and then displays the resulting mask using Matplotlib.
 """
 
@@ -59,3 +64,4 @@ plt.title("Hardware (y_hw.npy) Output")
 plt.axis('off')
 plt.tight_layout()
 plt.show()
+

@@ -1,3 +1,10 @@
+﻿'''
+
+# File: app_mt.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 '''
 Copyright 2020 Xilinx Inc.
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -165,3 +172,4 @@ def main():
 
 if __name__ == '__main__':
   main()
+
