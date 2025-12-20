@@ -1,3 +1,8 @@
+# File: util/model_quant.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import torch
 import torch.nn.functional as F
 from torch.nn import BatchNorm2d, Module, ModuleList, MaxPool2d

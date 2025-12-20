@@ -1,3 +1,8 @@
+# File: fz5_full_model/model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import torch
 from torch.nn import BatchNorm2d, MaxPool2d, Module, ModuleList, ConvTranspose2d
 from torch.nn import functional as F

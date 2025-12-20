@@ -1,3 +1,8 @@
+# File: vitis_ai/stem_unet/deploy.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 '''
 Vitis AI Deployment script - Auto-adaptive shape
 '''

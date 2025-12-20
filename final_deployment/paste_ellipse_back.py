@@ -1,3 +1,8 @@
+# File: final_deployment/paste_ellipse_back.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 from PIL import Image
 

@@ -1,3 +1,8 @@
+# File: hls4ml/ellipse_runet/synth_axi.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import tensorflow as tf
 from tensorflow_model_optimization.sparsity.keras import strip_pruning

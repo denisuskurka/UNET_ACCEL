@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/ellipse_runet/model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Simple CNN to regress ellipse parameters from grayscale ultrasound input.
 

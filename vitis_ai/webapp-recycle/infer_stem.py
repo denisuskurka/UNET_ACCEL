@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/webapp-recycle/infer_stem.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import time
 import os
 import sys

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# File: vitis_ai/webapp-recycle/deploy.sh
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # --------------------------------------------------
 # Configuration

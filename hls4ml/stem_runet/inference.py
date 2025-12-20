@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/stem_runet/inference.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import tensorflow as tf
 import numpy as np

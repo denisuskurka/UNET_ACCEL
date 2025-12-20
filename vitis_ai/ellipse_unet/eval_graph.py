@@ -1,3 +1,8 @@
+# File: vitis_ai/ellipse_unet/eval_graph.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import sys
 import os
 import argparse

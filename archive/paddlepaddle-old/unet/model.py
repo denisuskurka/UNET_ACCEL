@@ -1,3 +1,8 @@
+# File: archive/paddlepaddle-old/unet/model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 # model.py
 import paddle
 import paddle.nn as nn

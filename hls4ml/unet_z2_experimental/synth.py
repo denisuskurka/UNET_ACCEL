@@ -1,3 +1,8 @@
+# File: hls4ml/unet_z2_experimental/synth.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import time
 import tensorflow as tf

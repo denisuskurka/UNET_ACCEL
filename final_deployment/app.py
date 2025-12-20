@@ -1,3 +1,8 @@
+# File: final_deployment/app.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import time
 import shutil

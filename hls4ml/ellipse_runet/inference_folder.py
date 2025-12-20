@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/ellipse_runet/inference_folder.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import numpy as np
 import tensorflow as tf

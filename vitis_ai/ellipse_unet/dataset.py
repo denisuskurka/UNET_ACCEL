@@ -1,3 +1,8 @@
+# File: vitis_ai/ellipse_unet/dataset.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import time
 import tensorflow as tf

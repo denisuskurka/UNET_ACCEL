@@ -1,4 +1,9 @@
 #!/bin/bash
+# File: fz5_full_model/deploy_fz5.sh
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # Variables
 ZIP_FILE="deployment_package.zip"

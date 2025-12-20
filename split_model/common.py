@@ -1,3 +1,8 @@
+# File: split_model/common.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 from dependencies import value
 
 from brevitas.core.bit_width import BitWidthImplType

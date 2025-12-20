@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/webapp-recycle/fit_ellipse.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 import cv2
 import numpy as np

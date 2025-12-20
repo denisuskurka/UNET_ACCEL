@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/ellipse/databox/ellipse_mask_shrunk_outline.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 import os
 import numpy as np

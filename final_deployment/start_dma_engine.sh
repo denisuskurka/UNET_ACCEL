@@ -1,4 +1,9 @@
 #!/bin/bash
+# File: final_deployment/start_dma_engine.sh
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # Name of the driver process
 DRIVER_NAME="dma_driver"

@@ -1,3 +1,10 @@
+/*
+ * File: hls4ml/stem_runet/dma_benchmark.c
+ * Author: Denis Kurka
+ * Year: 2025
+ * License: CC0
+ */
+
 /*******************************************************************************
  * DMA Benchmark Example
  *

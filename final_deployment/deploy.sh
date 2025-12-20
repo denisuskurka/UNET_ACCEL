@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# File: final_deployment/deploy.sh
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # --------------------------------------------------
 # Configuration

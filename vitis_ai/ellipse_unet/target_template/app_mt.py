@@ -1,3 +1,8 @@
+# File: vitis_ai/ellipse_unet/target_template/app_mt.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 '''
 Copyright 2020 Xilinx Inc.
 Licensed under the Apache License, Version 2.0 (the "License");

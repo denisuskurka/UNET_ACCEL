@@ -1,3 +1,8 @@
+# File: hls4ml/simulation_predict/plotting.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import itertools
 
 import matplotlib.pyplot as plt

@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/ellipse_regressor/model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Ellipse Regression Model (Lightweight CNN) for 256x256 Input
 

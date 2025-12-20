@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: final_deployment/infer_ellipse.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Inference script for ellipse regression model with output upscaled to original resolution.
 """

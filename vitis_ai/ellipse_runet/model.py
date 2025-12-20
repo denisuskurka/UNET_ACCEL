@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/ellipse_runet/model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Full U-Net with standard TensorFlow Keras layers (no quantization)
 

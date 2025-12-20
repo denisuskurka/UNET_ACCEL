@@ -1,3 +1,8 @@
+# File: hls4ml/stem_runet/loss.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import tensorflow as tf
 
 # ----------------------------

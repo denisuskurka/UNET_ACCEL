@@ -1,3 +1,8 @@
+# File: hls4ml/unet_z2_experimental/axi_stream_driver.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 from datetime import datetime
 
 import numpy as np

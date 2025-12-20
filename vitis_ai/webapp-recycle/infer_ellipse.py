@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/webapp-recycle/infer_ellipse.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Inference script for Ellipse U-Net (Segmentation).
 Extracts ellipse parameters from the predicted mask using OpenCV.

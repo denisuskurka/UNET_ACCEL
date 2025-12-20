@@ -1,3 +1,8 @@
+# File: vitis_ai/stem_runet/image_input_fn.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 '''
  Copyright 2020 Xilinx Inc.
 

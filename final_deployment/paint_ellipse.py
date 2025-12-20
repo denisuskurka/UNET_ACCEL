@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: final_deployment/paint_ellipse.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 import numpy as np
 from PIL import Image

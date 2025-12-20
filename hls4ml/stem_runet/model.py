@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/stem_runet/model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Full U-Net with QKeras layers (reduced version)
 

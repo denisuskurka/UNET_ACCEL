@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# File: hls4ml/stem_runet/show_raw_result.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 import os
 import numpy as np

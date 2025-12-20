@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/unet_z2/result.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 This script loads the hardware output stored in 'y_hw.npy',
 analyzes its shape, reshapes it into an image (assuming a 128×128 output),

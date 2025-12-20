@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/ellipse_runet/train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 train.py - Training script for QKeras ellipse regressor with optional pruning.
 

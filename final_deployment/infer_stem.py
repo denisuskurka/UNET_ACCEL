@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: final_deployment/infer_stem.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import time
 import os
 import tensorflow as tf

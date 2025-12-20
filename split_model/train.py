@@ -1,3 +1,8 @@
+# File: split_model/train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 # File: train.py
 
 import os

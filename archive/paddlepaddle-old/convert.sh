@@ -1,3 +1,8 @@
+# File: archive/paddlepaddle-old/convert.sh
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 # To convert paddlepaddle model to paddle-lite, firstly download paddle-lite from here
 # https://github.com/PaddlePaddle/Paddle-Lite/releases
 # Download opt_linux_x86 or similiar file based on your architecture

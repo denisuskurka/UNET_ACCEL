@@ -1,3 +1,8 @@
+# File: fz5_full_model/dataset.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import random
 from PIL import Image

@@ -1,3 +1,8 @@
+# File: fz5_full_model/train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import shutil
 import torch

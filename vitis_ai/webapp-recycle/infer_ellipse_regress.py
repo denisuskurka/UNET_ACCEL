@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/webapp-recycle/infer_ellipse_regress.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Inference script for Ellipse Regression Model.
 Directly predicts parameters (cx, cy, axis1, axis2, angle) and draws them.

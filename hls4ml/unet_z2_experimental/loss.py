@@ -1,3 +1,8 @@
+# File: hls4ml/unet_z2_experimental/loss.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import tensorflow as tf
 
 # ----------------------------

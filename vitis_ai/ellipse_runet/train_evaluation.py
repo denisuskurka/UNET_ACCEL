@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/ellipse_runet/train_evaluation.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 predict.py - Load a trained U-Net model and generate masks for all images in a folder.
 

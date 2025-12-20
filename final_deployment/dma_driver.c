@@ -1,3 +1,10 @@
+/*
+ * File: final_deployment/dma_driver.c
+ * Author: Denis Kurka
+ * Year: 2025
+ * License: CC0
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

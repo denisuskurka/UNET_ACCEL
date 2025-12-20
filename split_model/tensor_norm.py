@@ -1,3 +1,8 @@
+# File: split_model/tensor_norm.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 # Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 

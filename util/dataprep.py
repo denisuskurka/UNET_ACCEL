@@ -1,3 +1,8 @@
+# File: util/dataprep.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import cv2
 import numpy as np

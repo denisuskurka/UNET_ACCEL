@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/unet_z2/train.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 A minimal training script for your QKeras-based UNet-light model for segmentation.
 This version uses Focal Tversky loss to better handle small masks (~1% of the image).

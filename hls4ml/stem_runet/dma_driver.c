@@ -1,3 +1,10 @@
+/*
+ * File: hls4ml/stem_runet/dma_driver.c
+ * Author: Denis Kurka
+ * Year: 2025
+ * License: CC0
+ */
+
 /*******************************************************************************
  * Example: AXI DMA MM2S -> S2MM Transfer (Polled) Using IDLE Bit Only
  *

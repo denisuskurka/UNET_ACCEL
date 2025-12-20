@@ -1,3 +1,8 @@
+# File: archive/paddlepaddle-old/unet/dataloader.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 # dataloader.py
 import paddle
 from paddle.io import Dataset

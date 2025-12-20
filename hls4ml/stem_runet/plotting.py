@@ -1,3 +1,8 @@
+# File: hls4ml/stem_runet/plotting.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import itertools
 
 import matplotlib.pyplot as plt

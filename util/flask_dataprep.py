@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# File: util/flask_dataprep.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 flask_dataprep.py
 

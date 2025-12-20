@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/stem_unet/model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Standard Float U-Net (Refactored from QKeras)
 

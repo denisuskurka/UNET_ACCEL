@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/ellipse_regressor/train_evaluation.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 predict_regressor.py - Load a trained Ellipse Regression model and visualize predictions vs Ground Truth.
 

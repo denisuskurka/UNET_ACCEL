@@ -1,3 +1,8 @@
+# File: archive/paddlepaddle-old/train_resnet_cifar10.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import paddle
 import paddle.nn as nn
 import paddle.vision.transforms as T

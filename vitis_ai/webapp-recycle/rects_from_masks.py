@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/webapp-recycle/rects_from_masks.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import os
 import numpy as np
 from PIL import Image

@@ -1,3 +1,8 @@
+# File: final_deployment/util.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 import math
 
 # Example margins: (top, bottom, left, right)

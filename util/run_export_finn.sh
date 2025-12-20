@@ -1,4 +1,9 @@
 #!/bin/bash
+# File: util/run_export_finn.sh
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 
 # =============================================================================
 # Script Name: run_export_finn.sh

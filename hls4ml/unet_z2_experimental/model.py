@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: hls4ml/unet_z2_experimental/model.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 Full U-Net with QKeras layers (reduced version)
 

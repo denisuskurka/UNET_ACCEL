@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# File: vitis_ai/ellipse_regressor/eval_graph.py
+# Author: Denis Kurka
+# Year: 2025
+# License: CC0
+
 """
 eval_graph.py - Evaluate Quantized Regression Model
 
