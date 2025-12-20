@@ -1,10 +1,3 @@
-﻿from datetime import datetime
-
-# File: axi_stream_driver.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 from datetime import datetime
 
 import numpy as np
@@ -80,4 +73,3 @@ class NeuralNetworkOverlay(Overlay):
             return self.output_buffer, dts, rate
         else:
             return self.output_buffer
-

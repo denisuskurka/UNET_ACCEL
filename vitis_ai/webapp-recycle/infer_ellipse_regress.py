@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: 
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 """
 Inference script for Ellipse Regression Model.
 Directly predicts parameters (cx, cy, axis1, axis2, angle) and draws them.
@@ -245,4 +240,3 @@ def infer_ellipse(hw=False):
 if __name__ == "__main__":
     # Change to True to test DPU mode
     infer_ellipse(hw=False)
-

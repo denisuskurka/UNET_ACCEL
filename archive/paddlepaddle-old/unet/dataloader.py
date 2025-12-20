@@ -1,10 +1,3 @@
-﻿# dataloader.py
-
-# File: dataloader.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 # dataloader.py
 import paddle
 from paddle.io import Dataset
@@ -32,4 +25,3 @@ class SyntheticDataset(Dataset):
 
     def __len__(self):
         return self.num_samples
-

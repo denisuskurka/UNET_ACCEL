@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: model.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 """
 Standard Float U-Net (Refactored from QKeras)
 
@@ -11,7 +6,7 @@ This model implements a standard U-Net architecture for Vitis AI deployment:
   - Four downsampling blocks
   - A bottleneck
   - Four upsampling blocks
-  - A final 1ﾃ・ convolution with sigmoid activation
+  - A final 1×1 convolution with sigmoid activation
 
 Changes from QKeras version:
   - QConv2DBatchnorm replaced by Conv2D + BatchNormalization
@@ -29,7 +24,7 @@ def build_model(HEIGHT, WIDTH):
     Builds a standard float U-Net model suitable for Vitis AI quantization flow.
     
     Parameters:
-      HEIGHT, WIDTH: Dimensions of the input image (e.g., 128ﾃ・28)
+      HEIGHT, WIDTH: Dimensions of the input image (e.g., 128×128)
       
     Returns:
       A Keras Model instance.
@@ -133,4 +128,3 @@ if __name__ == "__main__":
     WIDTH = 256
     model = build_model(HEIGHT, WIDTH)
     model.summary()
-

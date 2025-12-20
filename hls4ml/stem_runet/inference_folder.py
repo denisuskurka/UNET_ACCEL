@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: ------------------------------------------------------------------------------------
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 import os
 import numpy as np
 import tensorflow as tf
@@ -33,7 +28,7 @@ RAW_BIN_SUFFIX    = "_input.bin"
 OUTPUT_NPY_SUFFIX = "_pred.npy"
 # ------------------------------------------------------------------------------------
 
-# --- Utility for 窶彷ixed-point窶・style encoding (optional) ---
+# --- Utility for “fixed-point” style encoding (optional) ---
 def encode_to_int32(x):
     """
     Example: scale by 2^24 and round, storing as int32.
@@ -142,4 +137,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

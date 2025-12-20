@@ -1,10 +1,3 @@
-﻿'''
-
-# File: image_input_fn.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 '''
  Copyright 2020 Xilinx Inc.
 
@@ -42,5 +35,4 @@ def calib_input(iter):
             image = image[..., None]
             images.append(image)
     return {"cnn_input": images}
-
 

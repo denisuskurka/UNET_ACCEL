@@ -1,9 +1,4 @@
-﻿#!/bin/bash
-# File: Copyright 2020 Xilinx Inc.
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/bin/bash
 
 # Copyright 2020 Xilinx Inc.
 # 
@@ -31,4 +26,3 @@ rm -rf ${TARGET}
 mkdir ${TARGET}/
 cp ${COMPILE}/*.xmodel ${TARGET}/
 echo "  Copied xmodel file(s) to target folder"
-

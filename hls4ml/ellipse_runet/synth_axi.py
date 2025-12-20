@@ -1,10 +1,3 @@
-﻿import os
-
-# File: synth_axi.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import os
 import tensorflow as tf
 from tensorflow_model_optimization.sparsity.keras import strip_pruning
@@ -61,4 +54,3 @@ hls4ml.utils.plot_model(hls_model_q, show_shapes=True, show_precision=True, to_f
 # Synthesize!
 # ---------------------------
 hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
-

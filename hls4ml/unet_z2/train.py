@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: train.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 """
 A minimal training script for your QKeras-based UNet-light model for segmentation.
 This version uses Focal Tversky loss to better handle small masks (~1% of the image).
@@ -13,8 +8,8 @@ Changes:
   - At the end, plots training history (loss & accuracy) using matplotlib
 
 Requirements:
-  窶｢ A 'dataset' module that provides get_image_mask_paths() and create_dataset().
-  窶｢ A 'model' module that provides build_model(HEIGHT, WIDTH), which builds your QKeras model.
+  • A 'dataset' module that provides get_image_mask_paths() and create_dataset().
+  • A 'model' module that provides build_model(HEIGHT, WIDTH), which builds your QKeras model.
 """
 
 import os
@@ -181,4 +176,3 @@ plt.tight_layout()
 plt.show()
 
 print("\nDone. The best model is saved as 'best_model.h5'.")
-

@@ -1,9 +1,4 @@
-﻿#!/bin/bash
-# File: folders
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/bin/bash
 
 conda activate vitis-ai-tensorflow
 
@@ -64,4 +59,3 @@ export ARCH=/workspace/FZ5-UNET/vitis_ai/stem_runet/arch.json
 # DPU mode - best performance with DPU_MODE = normal
 export DPU_MODE=normal
 #export DPU_MODE=debug
-

@@ -1,9 +1,4 @@
-﻿#!/bin/bash
-# File: Variables
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/bin/bash
 
 # Variables
 ZIP_FILE="deployment_package.zip"
@@ -109,4 +104,3 @@ EOF
 # Final cleanup and confirmation
 echo "Deployment process completed successfully!"
 #scp -P 8112 petalinux@85.70.252.121:/home/petalinux/deployment/01_mask.png ./01_mask_fz5_inferred.png
-

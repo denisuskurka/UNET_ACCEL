@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: 
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 """
 predict_regressor.py - Load a trained Ellipse Regression model and visualize predictions vs Ground Truth.
 
@@ -155,4 +150,3 @@ def run_main():
 
 if __name__ == "__main__":
     run_main()
-

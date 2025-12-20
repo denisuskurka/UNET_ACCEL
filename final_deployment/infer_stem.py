@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: Force TensorFlow to use the CPU only (optional).
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 import time
 import os
 import tensorflow as tf
@@ -99,4 +94,3 @@ def infer_stem(cropped_filepath, hw=False):
         pred_mask = np.squeeze(pred)
 
         return pred_mask
-

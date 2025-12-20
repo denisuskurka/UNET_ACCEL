@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: 
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 """
 Inference script for ellipse regression model with output upscaled to original resolution.
 """
@@ -102,4 +97,3 @@ def infer_ellipse():
 
 if __name__ == "__main__":
     infer_ellipse()
-

@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: -------------------------------------------------------------------------
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 import os
 import numpy as np
 from PIL import Image
@@ -226,4 +221,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

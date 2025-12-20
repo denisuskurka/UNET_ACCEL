@@ -1,10 +1,3 @@
-﻿import os
-
-# File: List and sort image and mask file paths. If counts differ, use the first min(
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import os
 import time
 import tensorflow as tf
@@ -52,4 +45,3 @@ def create_dataset(image_paths, mask_paths, batch_size, HEIGHT, WIDTH):
     ds = ds.batch(batch_size)
     ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
     return ds
-

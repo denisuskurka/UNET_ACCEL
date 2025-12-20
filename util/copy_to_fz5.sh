@@ -1,9 +1,4 @@
-﻿#!/bin/bash
-# File: Variables
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/bin/bash
 
 # Variables
 ZIP_FILE="deployment_package.zip"
@@ -43,5 +38,4 @@ rm -f $ZIP_FILE
 echo "Done."
 
 # COnnect to fz5 and setup env
-
 

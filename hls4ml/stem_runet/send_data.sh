@@ -1,9 +1,4 @@
-﻿#!/bin/bash
-# File: Transfer input files to the remote machine
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/bin/bash
 
 # Transfer input files to the remote machine
 scp -P 8112 ./X_test1.bin ./dma_driver.c ./dma_benchmark.c petalinux@85.70.252.121:/home/petalinux/

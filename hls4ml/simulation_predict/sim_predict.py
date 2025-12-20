@@ -1,10 +1,3 @@
-﻿import os
-
-# File: sim_predict.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import os
 import time
 import tensorflow as tf
@@ -86,4 +79,3 @@ predict_imgs(hls_model_q, output="predicted", output_folder="hls_output")
 hls_model_q.build(reset=False, csim=True, synth=True, export=True, cosim=True, bitfile=False)
 
 predict_imgs(hls_model_q, output="predicted", output_folder="hls_output")
-

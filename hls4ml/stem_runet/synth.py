@@ -1,10 +1,3 @@
-﻿import os
-
-# File: synth.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import os
 import time
 import tensorflow as tf
@@ -123,4 +116,3 @@ data_quantized_pruned = getReports('quantized_pruned_cnn')
 
 print("\n Resource usage and latency: Pruned + quantized")
 pprint.pprint(data_quantized_pruned)
-

@@ -1,10 +1,3 @@
-﻿from dependencies import value
-
-# File: common.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 from dependencies import value
 
 from brevitas.core.bit_width import BitWidthImplType
@@ -45,4 +38,3 @@ class CommonWeightQuant(CommonQuant, WeightQuantSolver):
 class CommonActQuant(CommonQuant, ActQuantSolver):
     min_val = -1.0
     max_val = 1.0
-

@@ -1,10 +1,3 @@
-﻿import os
-
-# File: Change this to set how many pixels are cropped from each side (top, bottom, left, right)
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import os
 import cv2
 import numpy as np
@@ -192,13 +185,13 @@ if __name__ == "__main__":
     # -------------------------------------------------------------
     # 1) Create single-channel color masks -> /masks
     # -------------------------------------------------------------
-    common_masks_folder = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/data/masks"
+    common_masks_folder = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/masks"
     
     # Folders with separate colors
-    folder_path_blue = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/SN/100/Modra"
-    folder_path_green = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/SN/100/Zelena"
-    folder_path_red = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/SN/100/cervena"
-    folder_path_pink = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/SN/100/pink"
+    folder_path_blue = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100/Modra"
+    folder_path_green = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100/Zelena"
+    folder_path_red = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100/cervena"
+    folder_path_pink = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100/pink"
 
     # BGR values for the colors
     color_bgr_blue = (255, 8, 0)
@@ -250,8 +243,8 @@ if __name__ == "__main__":
     # -------------------------------------------------------------
     # 2) Convert images [01.jpg..99.jpg] -> PNG -> /images
     # -------------------------------------------------------------
-    source_folder_main = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/SN/100"
-    common_images_folder = "/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct/data/images"
+    source_folder_main = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/SN/100"
+    common_images_folder = "/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct/data/images"
 
     convert_and_copy_images_01_to_99_as_png(source_folder_main, common_images_folder)
     print("Finished copying/converting 01.jpg..99.jpg as PNG (cropped).")
@@ -265,4 +258,3 @@ if __name__ == "__main__":
         images_folder=common_images_folder
     )
     print("Duplicated images for each mask name in /images.")
-

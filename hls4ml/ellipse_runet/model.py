@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: model.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 """
 Simple CNN to regress ellipse parameters from grayscale ultrasound input.
 
@@ -65,4 +60,3 @@ if __name__ == "__main__":
                 print(f"{layer.name}: {layersize}")
                 if layersize > 4096:
                     print(f"Layer {layer.name} is too large ({layersize}), are you sure you want to train?")
-

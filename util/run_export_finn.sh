@@ -1,18 +1,13 @@
-﻿#!/bin/bash
-# File: =============================================================================
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/bin/bash
 
 # =============================================================================
 # Script Name: run_export_finn.sh
 # Description: Automates the process of exporting the UNetBrevitas model to FINN.
 # Steps:
-#   0) Delete /home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/workspace/ if it exists
-#   1) Copy everything from /home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct
-#      to /home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/workspace/
-#   2) Source /home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/set_paths.sh
+#   0) Delete /home/komaro/デスクトップ/Cermak/finn/workspace/ if it exists
+#   1) Copy everything from /home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct
+#      to /home/komaro/デスクトップ/Cermak/finn/workspace/
+#   2) Source /home/komaro/デスクトップ/Cermak/FZ5-UNET/set_paths.sh
 #   3) Run export_finn.py using run-docker.sh within the FINN Docker environment
 # =============================================================================
 
@@ -24,10 +19,10 @@ set -e
 # ------------------------------- #
 
 # Define absolute paths to avoid ambiguity
-FIVN_ROOT="/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn"
-MODEL_CONSTRUCT_DIR="/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/model_construct"
+FIVN_ROOT="/home/komaro/デスクトップ/Cermak/finn"
+MODEL_CONSTRUCT_DIR="/home/komaro/デスクトップ/Cermak/FZ5-UNET/model_construct"
 WORKSPACE_DIR="$FIVN_ROOT/workspace"
-SET_PATHS_SCRIPT="/home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/FZ5-UNET/set_paths.sh"
+SET_PATHS_SCRIPT="/home/komaro/デスクトップ/Cermak/FZ5-UNET/set_paths.sh"
 RUN_DOCKER_SCRIPT="$FIVN_ROOT/run-docker.sh"
 EXPORT_SCRIPT="export_finn.py"  # Ensure this script is located in model_construct
 
@@ -125,4 +120,3 @@ echo_info "export_finn.py executed successfully within Docker."
 
 echo_info "All steps completed successfully."
 echo_info "The exported ONNX model should be located at $WORKSPACE_DIR/unet_finn.onnx"
-

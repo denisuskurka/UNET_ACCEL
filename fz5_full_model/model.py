@@ -1,10 +1,3 @@
-﻿import torch
-
-# File: model.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import torch
 from torch.nn import BatchNorm2d, MaxPool2d, Module, ModuleList, ConvTranspose2d
 from torch.nn import functional as F
@@ -266,4 +259,3 @@ if __name__ == "__main__":
     print("Input shape :", test_input.shape)
     print("Output shape:", output.shape)
     # Expected output shape: (1, out_channels, 128, 128)
-

@@ -1,10 +1,3 @@
-﻿import os
-
-# File: --- KONFIGURACE ---
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import os
 import cv2
 import numpy as np
@@ -23,9 +16,9 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['RESULT_FOLDER'] = RESULT_FOLDER
 
-# --- GLOBﾃ´Nﾃ・PROMﾄ哢Nﾃ・---
-# Musﾃｭme drﾅｾet reference, aby je Python Garbage Collector nesmazal
-g_graph = None       # <--- DﾅｮLEﾅｽITﾃ・ Graf musﾃｭ bﾃｽt globﾃ｡lnﾃｭ
+# --- GLOBÁLNÍ PROMĚNNÉ ---
+# Musíme držet reference, aby je Python Garbage Collector nesmazal
+g_graph = None       # <--- DŮLEŽITÉ: Graf musí být globální
 dpu_runner = None
 input_ndim = None
 output_ndim = None
@@ -34,24 +27,24 @@ model_w = 0
 dpu_lock = threading.Lock() 
 
 def init_dpu():
-    # Pouﾅｾijeme globﾃ｡lnﾃｭ promﾄ嬾nﾃｩ
+    # Použijeme globální proměnné
     global dpu_runner, input_ndim, output_ndim, model_h, model_w, g_graph
     
     print(f"[INFO] Loading model: {MODEL_PATH}")
-    # Naﾄ衡eme graf do globﾃ｡lnﾃｭ promﾄ嬾nﾃｩ, aby pﾅ册ﾅｾil konec tﾃｩto funkce
+    # Načteme graf do globální proměnné, aby přežil konec této funkce
     g_graph = xir.Graph.deserialize(MODEL_PATH)
     
     root_subgraph = g_graph.get_root_subgraph()
     child_subgraphs = root_subgraph.toposort_child_subgraph()
     
-    # Najﾃｭt DPU subgraph
+    # Najít DPU subgraph
     dpu_subgraph = [cs for cs in child_subgraphs 
                     if cs.has_attr("device") and cs.get_attr("device").upper() == "DPU"][0]
 
-    # Vytvoﾅ冓t runner
+    # Vytvořit runner
     dpu_runner = vart.Runner.create_runner(dpu_subgraph, "run")
     
-    # Zjistit rozmﾄ孑y
+    # Zjistit rozměry
     inputTensors = dpu_runner.get_input_tensors()
     outputTensors = dpu_runner.get_output_tensors()
     
@@ -76,15 +69,15 @@ def preprocess_image(image_path):
     return img
 
 def run_inference(processed_img):
-    # Dﾅｯleﾅｾitﾃｩ: Vytvﾃ｡ﾅ凖ｭme C-contiguous pole pﾅ凖ｭmo zde
+    # Důležité: Vytváříme C-contiguous pole přímo zde
     inputData = [np.empty(input_ndim, dtype=np.float32, order="C")]
     outputData = [np.empty(output_ndim, dtype=np.float32, order="C")]
     
-    # Kopﾃｭrovﾃ｡nﾃｭ dat (zajistﾃｭ sprﾃ｡vnﾃｩ rozloﾅｾenﾃｭ pamﾄ孚i)
+    # Kopírování dat (zajistí správné rozložení paměti)
     inputData[0][0, ...] = processed_img[0]
     
     with dpu_lock:
-        # Volﾃ｡nﾃｭ DPU
+        # Volání DPU
         job_id = dpu_runner.execute_async(inputData, outputData)
         dpu_runner.wait(job_id)
     
@@ -131,8 +124,7 @@ if __name__ == '__main__':
     
     init_dpu()
     
-    # DﾅｮLEﾅｽITﾃ・PRO FLASK + DPU:
-    # 1. debug=False (debug mode vytvﾃ｡ﾅ凖ｭ child procesy, kterﾃｩ rozbﾃｭjﾃｭ XRT kontext)
-    # 2. threaded=True je default, ale s DPU zﾃ｡mkem (dpu_lock) je to bezpeﾄ肱ﾃｩ.
+    # DŮLEŽITÉ PRO FLASK + DPU:
+    # 1. debug=False (debug mode vytváří child procesy, které rozbíjí XRT kontext)
+    # 2. threaded=True je default, ale s DPU zámkem (dpu_lock) je to bezpečné.
     app.run(host='0.0.0.0', port=5000, debug=False)
-

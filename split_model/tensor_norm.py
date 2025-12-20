@@ -1,10 +1,3 @@
-﻿# Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
-
-# File: Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 # Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -46,4 +39,3 @@ class TensorNorm(nn.Module):
         else:
             return ((x - self.running_mean) /
                     (self.running_var + self.eps).pow(0.5)) * self.weight + self.bias
-

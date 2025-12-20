@@ -1,10 +1,3 @@
-﻿import os
-
-# File: paste_ellipse_back.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import os
 from PIL import Image
 
@@ -58,4 +51,3 @@ if __name__ == "__main__":
         out_path="./data/painted_in_cropped.png",
         bbox=bbox
     )
-

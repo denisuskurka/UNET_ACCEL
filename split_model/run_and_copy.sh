@@ -1,11 +1,5 @@
-﻿#!/bin/bash
-# File: run_and_copy.sh
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/bin/bash
 python3 train.py
-cp ./best_unet_weights.pth /home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/notebooks/unet/
-cp ./common.py /home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/notebooks/unet/
-cp ./model.py /home/komaro/繝・せ繧ｯ繝医ャ繝・Cermak/finn/notebooks/unet/
-
+cp ./best_unet_weights.pth /home/komaro/デスクトップ/Cermak/finn/notebooks/unet/
+cp ./common.py /home/komaro/デスクトップ/Cermak/finn/notebooks/unet/
+cp ./model.py /home/komaro/デスクトップ/Cermak/finn/notebooks/unet/

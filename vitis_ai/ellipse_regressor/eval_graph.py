@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: 
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 """
 eval_graph.py - Evaluate Quantized Regression Model
 

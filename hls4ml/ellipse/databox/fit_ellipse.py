@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: scikit-image for regionprops and drawing
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 
 import os
 import numpy as np
@@ -176,4 +171,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

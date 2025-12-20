@@ -1,10 +1,3 @@
-﻿import os
-
-# File: synth.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 import os
 import time
 import tensorflow as tf
@@ -98,4 +91,3 @@ val_x = np.ascontiguousarray(val_x)
 hls_model_q.build(csim=False, export=True, bitfile=True)
 
 #!sed -n '30,45p' quantized_pruned_cnn/myproject_vivado_accelerator/project_1.runs/impl_1/design_1_wrapper_utilization_placed.rpt
-

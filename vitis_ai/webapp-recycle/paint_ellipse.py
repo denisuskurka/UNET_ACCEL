@@ -1,9 +1,4 @@
-﻿#!/usr/bin/env python
-# File: -----------------------------------------------------------------------------
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 
 import numpy as np
 from PIL import Image
@@ -69,4 +64,3 @@ def paint_ellipse():
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
     paint_ellipse()
-

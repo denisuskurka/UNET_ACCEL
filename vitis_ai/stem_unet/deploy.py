@@ -1,10 +1,3 @@
-﻿'''
-
-# File: 
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
 '''
 Vitis AI Deployment script - Auto-adaptive shape
 '''
@@ -23,15 +16,15 @@ import sys
 import argparse
 import math
 
-# Globﾃ｡lnﾃｭ promﾄ嬾nﾃ｡ pro uklﾃ｡dﾃ｡nﾃｭ masek (default)
+# Globální proměnná pro ukládání masek (default)
 OUTPUT_DIR = "output_masks"
 
 def preprocess_fn(image_path, fix_height, fix_width):
     '''
-    Dynamickﾃｽ pre-processing.
-    Bere rozmﾄ孑y (fix_height, fix_width) podle toho, co vyﾅｾaduje model.
+    Dynamický pre-processing.
+    Bere rozměry (fix_height, fix_width) podle toho, co vyžaduje model.
     '''
-    # 1. Naﾄ催ｭst jako Grayscale
+    # 1. Načíst jako Grayscale
     image = cv2.imread(image_path, 0) 
     
     if image is None:
@@ -51,9 +44,9 @@ def preprocess_fn(image_path, fix_height, fix_width):
 
 def postprocess_output(output_data, filename, shape_h, shape_w):
     '''
-    Dynamickﾃｽ post-processing.
+    Dynamický post-processing.
     '''
-    # Reshape podle rozmﾄ孑ﾅｯ modelu
+    # Reshape podle rozměrů modelu
     prediction = output_data.reshape((shape_h, shape_w))
     
     # Binarizace (Threshold)
@@ -104,7 +97,7 @@ def runDPU(id, start, dpu, img):
         '''init input image to input buffer '''
         for j in range(runSize):
             imageRun = inputData[0]
-            # Zde uﾅｾ chyba nebude, protoﾅｾe img je pre-procesovanﾃｽ na sprﾃ｡vnou velikost
+            # Zde už chyba nebude, protože img je pre-procesovaný na správnou velikost
             imageRun[j, ...] = img[(count + j) % n_of_images]
 
         '''run with batch '''
@@ -136,15 +129,15 @@ def app(image_dir, threads, model):
     g = xir.Graph.deserialize(model)
     subgraphs = get_child_subgraph_dpu(g)
     
-    # Vytvoﾅ册nﾃｭ runnerﾅｯ
+    # Vytvoření runnerů
     all_dpu_runners = []
     for i in range(threads):
         all_dpu_runners.append(vart.Runner.create_runner(subgraphs[0], "run"))
 
-    # --- AUTOMATICKﾃ・DETEKCE ROZMﾄ啌ﾅｮ ---
-    # Zﾃｭskﾃ｡me rozmﾄ孑y vstupnﾃｭho tensoru z prvnﾃｭho runneru
+    # --- AUTOMATICKÁ DETEKCE ROZMĚRŮ ---
+    # Získáme rozměry vstupního tensoru z prvního runneru
     inputTensors = all_dpu_runners[0].get_input_tensors()
-    # Tvar je obvykle (Batch, Height, Width, Channel) -> napﾅ・ (1, 256, 256, 1)
+    # Tvar je obvykle (Batch, Height, Width, Channel) -> např. (1, 256, 256, 1)
     model_h = inputTensors[0].dims[1]
     model_w = inputTensors[0].dims[2]
     
@@ -156,7 +149,7 @@ def app(image_dir, threads, model):
     img = []
     for i in range(runTotal):
         path = os.path.join(image_dir, listimage[i])
-        # Posﾃｭlﾃ｡me zjiﾅ｡tﾄ嬾ﾃｩ rozmﾄ孑y do funkce
+        # Posíláme zjištěné rozměry do funkce
         img.append(preprocess_fn(path, model_h, model_w))
 
     '''run threads '''
@@ -193,7 +186,7 @@ def app(image_dir, threads, model):
     print("Saving output masks...")
     for i in range(runTotal):
         if out_q[i] is not None:
-            # I post-processing potﾅ册buje vﾄ嫖ﾄ孚 rozmﾄ孑y pro reshape
+            # I post-processing potřebuje vědět rozměry pro reshape
             postprocess_output(out_q[i], listimage[i], model_h, model_w)
             
     print(f"Done. Masks saved in '{OUTPUT_DIR}'")
@@ -205,7 +198,7 @@ def main():
   ap.add_argument('-d', '--image_dir', type=str, default='images', help='Path to folder of images.')  
   ap.add_argument('-t', '--threads',   type=int, default=1,        help='Number of threads.')
   ap.add_argument('-m', '--model',     type=str, required=True,    help='Path of xmodel file.')
-  # Parametr --shape uﾅｾ nenﾃｭ potﾅ册ba, skript si to zjistﾃｭ sﾃ｡m, ale pro jistotu ho tu nechﾃ｡m jako "dummy", aby to nespadlo, kdybys ho tam ze zvyku napsal.
+  # Parametr --shape už není potřeba, skript si to zjistí sám, ale pro jistotu ho tu nechám jako "dummy", aby to nespadlo, kdybys ho tam ze zvyku napsal.
   ap.add_argument('-s', '--shape',     type=int, default=0,        help='(Deprecated) Input shape is now auto-detected from the model.')
 
   args = ap.parse_args()  
@@ -214,4 +207,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-

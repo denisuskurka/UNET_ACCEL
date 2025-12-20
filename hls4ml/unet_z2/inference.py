@@ -1,20 +1,15 @@
-﻿#!/usr/bin/env python
-# File: inference.py
-# Author: Denis Kurka
-# Year: 2025
-# License: CC0
-
+#!/usr/bin/env python
 """
 A simple inference script for a QKeras model.
 This script:
-  窶｢ Loads one image from the images folder.
-  窶｢ Preprocesses it (grayscale, resized to 128ﾃ・28).
-  窶｢ Exports the preprocessed image as 'X_test.npy'.
-  窶｢ Loads the quantized model (using a custom object scope to register QKeras layers)
+  • Loads one image from the images folder.
+  • Preprocesses it (grayscale, resized to 128×128).
+  • Exports the preprocessed image as 'X_test.npy'.
+  • Loads the quantized model (using a custom object scope to register QKeras layers)
     with compile=False (to avoid loading the custom loss).
-  窶｢ Runs inference to get a baseline response.
-  窶｢ Exports the predicted mask as 'Y_baseline.npy'.
-  窶｢ Displays the input image and predicted mask using Matplotlib.
+  • Runs inference to get a baseline response.
+  • Exports the predicted mask as 'Y_baseline.npy'.
+  • Displays the input image and predicted mask using Matplotlib.
 """
 
 import os
@@ -150,4 +145,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
