@@ -22,7 +22,9 @@ import tensorflow as tf
 app = Flask(__name__)
 
 UPLOAD_FOLDER = './data'
+FIG_FOLDER = './fig'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(FIG_FOLDER, exist_ok=True)
 
 IMG_SIZE = (256, 256)
 INPUT_BMP = "data.bmp"
@@ -39,6 +41,11 @@ PAINTED_IN_CROPPED = "painted_in_cropped.png"
 def uploaded_file(filename):
     """Serve files from the upload folder."""
     return send_from_directory(UPLOAD_FOLDER, filename)
+
+@app.route('/fig/<filename>')
+def serve_figure(filename):
+    """Serve files from the fig folder for logos/static assets."""
+    return send_from_directory(FIG_FOLDER, filename)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -243,8 +250,8 @@ def index():
       <body>
         
         <div class="logo-container">
-            <img src="./data/evropa_logo.png" alt="European Union Logo">
-            <img src="./data/npo_logo.png" alt="Narodni plan obnovy Logo">
+            <img src="./fig/evropa_logo.npng" alt="European Union Logo">
+            <img src="./fig/npo_logo.npng" alt="Narodni plan obnovy Logo">
         </div>
 
         <h1>Vitis AI Inference Pipeline</h1>
