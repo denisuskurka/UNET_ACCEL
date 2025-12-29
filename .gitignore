@@ -180,3 +180,4 @@ cython_debug/
 # Exception for evropa_logo.png and npo_logo.png
 !evropa_logo.png
 !npo_logo.png
+!vitis_ai_webapp_screenshot.png
