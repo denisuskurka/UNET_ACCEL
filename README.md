@@ -2,6 +2,8 @@
 
 ![EU sponsorship](evropa_logo.png) ![NPO sponsorship](npo_logo.png)
 
+Affiliation: University of Ostrava, Faculty of Medicine
+
 A concise repository for accelerating a U-Net segmentation model on FPGA platforms. This project contains two main, fully-working flows and several experimental/archived efforts for reference and comparison.
 
 ## Project layout (short)
@@ -111,6 +113,7 @@ If you don't want to train your own NN, you can just skip to step 4. for webapp-
 ---
 
 ## Contact / Author
+Affiliation: University of Ostrava, Faculty of Medicine
 - Denis Kurka
 - Petr Čermák
 
